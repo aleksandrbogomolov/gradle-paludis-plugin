@@ -47,19 +47,3 @@ test {
     systemProperty 'domainUser', project.getProperty('domainUser')
     systemProperty 'domainPassword', project.getProperty('domainPassword')
 }
-
-
-/*configurations {
-    gradleRuntime
-}
-
-idea {
-    module {
-        scopes.RUNTIME.plus += [ configurations.gradleRuntime ]
-    }
-}
-
-dependencies {
-    gradleRuntime files("gradle/wrapper/gradle-wrapper.jar")
-}
-*/

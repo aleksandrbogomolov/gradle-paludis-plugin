@@ -1,5 +1,6 @@
 package com.tander.logistics.utils
 
+import com.tander.logistics.svn.SVNUtils
 import org.tmatesoft.svn.core.ISVNLogEntryHandler
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNLogEntry
@@ -22,7 +23,7 @@ class PaludisPackage {
         svnUtils = new SVNUtils(svnUsername, svnPassword)
     }
 
-    Build getBuildFromSet(String setNumber) {
+    PackageVersion getBuildFromSet(String setNumber) {
 
         //скачать сет из SVN
 
@@ -30,9 +31,9 @@ class PaludisPackage {
         return null
     }
 
-    Build getBuildBySPPRTask(String spprTaskNumber) {
+    PackageVersion getBuildBySPPRTask(String spprTaskNumber) {
 
-        Build build = new Build()
+        PackageVersion build = new PackageVersion()
 
         ISVNLogEntryHandler isvnLogEntryHandler = new ISVNLogEntryHandler() {
             @Override
@@ -70,7 +71,34 @@ class PaludisPackage {
         return "$EBUILDS_ROOT/$packageGroup/$packageName"
     }
 
-    Boolean isFilesChanged
+    def initValues() {
+        // определить номер релиза
+        // если ветка в каталоге releases то номер = наименованию ветки
+        // если
+    }
+
+    Boolean isFilesChanged() {
+
+        // 1) сравнить старую и новую ветки. Если есть изменения нужно собирать
+        // 2) сравнить
+        // compareSVNBranches;
+    }
+
+    def generatePackageVersion() {
+        // вытащить историю коммитов в ebuild
+        // если есть хоть один коммит с указанным номером запроса, то используем номер в этом ebuild
+        // если таких коммитов нет, то если файлы изменились - увеличиваем номер
+        // если файлы не изменились, то ищем последний коммит в продакшн сборку с номером релиза меньше или равно указанному
+        // если это официальная сборка, то номер равен номеру сборки
+    }
+
+
+    def getPackageVersion() {
+        initValues();
+        if (isFilesChanged()) {
+            generatePackageVersion();
+        }
+    }
 
 
 }

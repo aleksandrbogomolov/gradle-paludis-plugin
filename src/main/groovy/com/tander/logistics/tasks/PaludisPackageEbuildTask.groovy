@@ -1,5 +1,6 @@
 package com.tander.logistics.tasks
 
+import groovy.text.StreamingTemplateEngine
 import groovy.text.XmlTemplateEngine
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
@@ -21,20 +22,14 @@ class PaludisPackageEbuildTask extends DefaultTask {
 
     PaludisPackageEbuildTask() {
         group = "distribution"
-        description = "Create new ebuild file"
+        description = "Generate ebuild file"
     }
 
     @TaskAction
     void run () {
         SimpleTemplateEngine engine = new SimpleTemplateEngine()
-        XmlTemplateEngine xmlTemplateEngine = new XmlTemplateEngine()
-        logger.lifecycle(templateFile.toString())
         Template template = engine.createTemplate(templateFile)
-        Template xmlTemplate = xmlTemplateEngine.createTemplate(templateFile)
-        logger.lifecycle('123123')
         ebuildFile = new File(project.buildDir, baseName + version + '.ebuild')
-        logger.lifecycle('22222')
-//        ebuildFile.write(template.make().toString())
-        ebuildFile.write(xmlTemplate.make().toString())
+        ebuildFile.write(template.make().toString())
     }
 }

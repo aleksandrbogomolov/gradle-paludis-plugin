@@ -10,7 +10,7 @@ enum VersionType {
     Build
 }
 
-class Build {
+class PackageVersion {
 
 
     String version
