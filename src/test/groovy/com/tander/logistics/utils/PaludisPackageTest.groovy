@@ -1,5 +1,7 @@
 package com.tander.logistics.utils
 
+import com.tander.logistics.core.PaludisPackage
+
 /**
  * Created by durov_an on 07.04.2016.
  */

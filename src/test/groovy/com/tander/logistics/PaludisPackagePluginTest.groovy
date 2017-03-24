@@ -1,9 +1,6 @@
-package com.tander.logistics;
+package com.tander.logistics
 
-import com.tander.logistics.utils.PaludisPackage;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
+import org.junit.Test
 
 /**
  * Created by durov_an on 05.04.2016.

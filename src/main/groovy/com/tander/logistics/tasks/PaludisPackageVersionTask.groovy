@@ -1,9 +1,10 @@
 package com.tander.logistics.tasks
 
 import com.tander.logistics.PaludisPackageExtension
-import com.tander.logistics.utils.PackageVersion
-import com.tander.logistics.utils.PaludisPackage
-import com.tander.logistics.utils.VersionType
+import com.tander.logistics.svn.SvnUtils
+import com.tander.logistics.core.PackageVersion
+import com.tander.logistics.core.PaludisPackage
+import com.tander.logistics.core.VersionType
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -12,11 +13,12 @@ import org.gradle.api.tasks.TaskAction
  */
 class PaludisPackageVersionTask extends DefaultTask {
 
-    PackageVersion packageBuild
-    String packageVersion
+    PackageVersion packageVersion
 //    @Output String packageVersion
 
     PaludisPackage paludisPackage
+    SvnUtils svnUtils
+    PaludisPackageExtension ext
 
     PaludisPackageVersionTask() {
         group = "distribution"
@@ -25,34 +27,25 @@ class PaludisPackageVersionTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        PaludisPackageExtension packageExtension = project.extensions.paludis_package
 
-//        logger.lifecycle(new JsonBuilder(packageExtension).toString())
-//        logger.lifecycle(packageExtension.packageGroup)
-//        logger.lifecycle(packageExtension.packageName)
-//        logger.lifecycle(packageExtension.user)
-//        logger.lifecycle(packageExtension.password.toString())
-//        logger.lifecycle(packageExtension.spprTask)
-
-        paludisPackage = new PaludisPackage(packageExtension.packageGroup,
-                packageExtension.packageName,
-                packageExtension.user,
-                packageExtension.password)
-        packageBuild = paludisPackage.getBuildBySPPRTask(packageExtension.spprTask)
+        PaludisPackageExtension ext = project.extensions.paludis_package
+        this.svnUtils = new SvnUtils(this.ext.user, this.ext.password.toCharArray())
+        paludisPackage = new PaludisPackage(ext, svnUtils)
+        packageVersion = paludisPackage.getBuildBySPPRTask(ext.spprTask)
 //        logger.lifecycle(packageBuild.version)
-        if (!packageBuild.version && packageExtension.spprTask) {
+        if (!packageVersion.version && ext.spprTask) {
             // если не нашли билд по задаче, то найдём последний билд
-            packageBuild = paludisPackage.getBuildBySPPRTask(null)
-            packageBuild.incVersion(VersionType.Minor)
+            packageVersion = paludisPackage.getBuildBySPPRTask(null)
+            packageVersion.incVersion(VersionType.Minor)
         }
-        if (!packageBuild.version) {
-            packageBuild.version = '1.0.0'
+        if (!packageVersion.version) {
+            packageVersion.version = '1.0.0'
         }
 
-        logger.lifecycle("packageVersion - " + packageBuild.version)
+        logger.lifecycle("packageVersion - " + packageVersion.version)
         logger.lifecycle("baseName - " + project.name)
 
-        packageExtension.info.full = packageBuild.version
+        ext.info.full = packageVersion.version
     }
 
 //    @TaskAction
@@ -67,10 +60,10 @@ class PaludisPackageVersionTask extends DefaultTask {
         // то вытягиваем сет предыдущего релиза, находим в нём номер релиза нашего подпроекта
         //
 
-        packageVersion = paludisPackage.getBuildBySPPRTask(spprTaskNumber).version
-        if (!packageVersion || spprTaskNumber) {
-            packageVersion = paludisPackage.getBuildBySPPRTask(null).version
-        }
+//        packageVersion = paludisPackage.getBuildBySPPRTask(spprTaskNumber).version
+//        if (!packageVersion || spprTaskNumber) {
+//            packageVersion = paludisPackage.getBuildBySPPRTask(null).version
+//        }
 
         // найти в логе последний коммит с номером задачи
 

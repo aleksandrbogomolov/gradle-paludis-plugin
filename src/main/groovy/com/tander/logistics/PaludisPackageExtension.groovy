@@ -1,5 +1,7 @@
 package com.tander.logistics
 
+import org.gradle.api.Project
+
 
 /**
  * Created by durov_an on 10.02.2016.
@@ -7,12 +9,28 @@ package com.tander.logistics
  * Настройки плагина
  */
 class PaludisPackageExtension {
-    String previousBranch = ''
+
+    Project project
+    Boolean isTest = false
+    String scmType
+    String user = ''
+    String password = ''
+
+    String taskNumber
+    String releaseVersion
+    String currUrl
+    String prevUrl
+    String currRevision
+    String prevRevision
+
+    String isCheckReleaseNumberNeeded
+    String isUpdateReleaseNumberNeeded
+
+    String buildTaskNumber
+
     String packageName = ''
     String packageGroup = ''
     String spprTask = ''
-    String user = ''
-    char[] password
     String ebuildTemplate = ''
     private VersionInfo info
 
