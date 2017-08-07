@@ -13,7 +13,7 @@ import org.gradle.api.tasks.TaskAction
  */
 class PaludisPackageVersionTask extends DefaultTask {
 
-    PackageVersion packageVersion
+    PackageVersion packageVersion = new PackageVersion()
 //    @Output String packageVersion
 
     PaludisPackage paludisPackage
@@ -28,20 +28,12 @@ class PaludisPackageVersionTask extends DefaultTask {
     @TaskAction
     void run() {
 
-        PaludisPackageExtension ext = project.extensions.paludis_package
+        ext = project.extensions.paludis_package
         this.svnUtils = new SvnUtils(this.ext.user, this.ext.password.toCharArray())
-        paludisPackage = new PaludisPackage(ext, svnUtils)
-        packageVersion = paludisPackage.getBuildBySPPRTask(ext.spprTask)
+        paludisPackage = new PaludisPackage(project, svnUtils)
+//        packageVersion = paludisPackage.getBuildBySPPRTask(ext.spprTask)
+        packageVersion.version = paludisPackage.getPackageVersion()
 //        logger.lifecycle(packageBuild.version)
-        if (!packageVersion.version && ext.spprTask) {
-            // если не нашли билд по задаче, то найдём последний билд
-            packageVersion = paludisPackage.getBuildBySPPRTask(null)
-            packageVersion.incVersion(VersionType.Minor)
-        }
-        if (!packageVersion.version) {
-            packageVersion.version = '1.0.0'
-        }
-
         logger.lifecycle("packageVersion - " + packageVersion.version)
         logger.lifecycle("baseName - " + project.name)
 

@@ -46,8 +46,8 @@ class PaludisPackage {
     SvnBranch prevBranch
 
 
-    def PaludisPackage(Project project, PaludisPackageExtension ext, SvnUtils svnUtils) {
-        this.ext = ext
+    def PaludisPackage(Project project, SvnUtils svnUtils) {
+        this.ext = project.extensions.paludis_package
         this.svnUtils = svnUtils
 
         logger = Logging.getLogger(this.class)
@@ -57,6 +57,7 @@ class PaludisPackage {
 
         packageGroup = ext.packageGroup
         packageName = ext.packageName
+        setName = ext.setName
 
         currBranch = new SvnBranch(svnUtils, null, null, null)
         prevBranch = new SvnBranch(svnUtils, null, null, null)
@@ -148,10 +149,13 @@ class PaludisPackage {
             @Override
             void handleDirEntry(SVNDirEntry svnDirEntry) throws SVNException {
 
-                def matcher = (svnDirEntry.getRelativePath() =~ /#name-(\.+).ebuild/)
-                def version = matcher ? matcher.group(1) : null
-                if (!version.isEmpty()) {
+                def m = svnDirEntry.getRelativePath() =~ /${name}-(\.+).ebuild/
+                def version = ""
+                if (m.matches()) {
+                    version = m.group(1)
                     packageVersions.add(version)
+                } else {
+                    version = ""
                 }
             }
         }
@@ -226,31 +230,39 @@ class PaludisPackage {
     }
 
 
-    def getPackageVersion() {
+    String getPackageVersion() {
         initValues()
         if (isFilesChanged()) {
             // если произошли изменения, то новый номер версии = номеру релиза
             ext.info.full = currBranch.version
+            return currBranch.version
+//            если собираем не релиз, то версия = номеру запроса в СППР? нужен генератор номеров
 //            generatePackageVersion();
         } else {
             // если изменений нет, то нужно взять номер из ebuild файла с предыдущим сетом
             // получить номер предыдущего сета
             ArrayList setVersions = getPackageVersions("set", setName)
             def curSetVersionIndex = setVersions.findIndexOf {
-                it = setVersion
+                it == setVersion
+            }
+            // а предыдущего сета может не быть, тогда создаём? неет.
+            if (curSetVersionIndex == -1) {
+                return currBranch.version
             }
             String prevSetVersion = setVersions[curSetVersionIndex - 1]
             // выгрузить его
             exportPackage("set", setName, prevSetVersion)
             // сделать парсинг файла, по имени пакета
-            ext.info.full = generatePackageVersion()
+            return getVersionFromEbuild("set", setName, prevSetVersion)
+//            ext.info.full = generatePackageVersion()
         }
     }
 
     String getVersionFromEbuild(String group, String name, String version) {
         File setEbuildFile = new File(releaseDir.path + "/repository/$group/$name/$name-${version}.ebuild")
-
-        def matcher = (setEbuildFile.getText() =~ /=${this.packageGroup}\/${this.packageName}-(\.+)/)
+        def pattern = /\=${this.packageGroup}\/${this.packageName}-(\.+)/
+        def matcher = setEbuildFile.getText() =~ pattern
+        def m = message =~ /(?s)(#SP\d+).*/
         def prevVersion = matcher ? matcher.group(1) : null
         return prevVersion
     }

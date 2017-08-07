@@ -30,6 +30,7 @@ class PaludisPackageExtension {
 
     String packageName = ''
     String packageGroup = ''
+    String setName = ''
     String spprTask = ''
     String ebuildTemplate = ''
     private VersionInfo info

@@ -14,10 +14,14 @@ import groovy.text.Template
  * Created by durov_an on 07.12.2016.
  */
 class PaludisPackageEbuildTask extends DefaultTask {
-    @Input String version
-    @Input String baseName
-    @InputFile File templateFile
+    @Input
+    String version
+    @Input
+    String baseName
+    @InputFile
+    File templateFile
 
+    @OutputFile
     File ebuildFile
 
     PaludisPackageEbuildTask() {
@@ -26,10 +30,10 @@ class PaludisPackageEbuildTask extends DefaultTask {
     }
 
     @TaskAction
-    void run () {
+    void run() {
         SimpleTemplateEngine engine = new SimpleTemplateEngine()
         Template template = engine.createTemplate(templateFile)
-        ebuildFile = new File(project.buildDir, baseName + version + '.ebuild')
+        ebuildFile = new File(project.buildDir, "${baseName}-${version}.ebuild")
         ebuildFile.write(template.make().toString())
     }
 }
