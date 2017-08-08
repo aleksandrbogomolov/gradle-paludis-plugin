@@ -1,6 +1,6 @@
 group 'com.tander.logistics'
-version '0.0.2-TEST'
 
+version '0.0.2-TEST'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 //apply plugin: 'codenarc'
@@ -45,7 +45,9 @@ publishing {
     }
 }
 
-//test {
+test {
 //    systemProperty 'domainUser', project.getProperty('domainUser')
 //    systemProperty 'domainPassword', project.getProperty('domainPassword')
-//}
+    systemProperty 'domainUser', 'bogomolov_av'
+    systemProperty 'domainPassword', 'qwe123ZXC456'
+}

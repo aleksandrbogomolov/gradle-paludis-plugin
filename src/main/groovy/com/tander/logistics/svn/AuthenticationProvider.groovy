@@ -14,6 +14,7 @@ import org.tmatesoft.svn.core.auth.SVNPasswordAuthentication
  * Created by durov_an on 08.02.2017.
  */
 class AuthenticationProvider implements ISVNAuthenticationProvider {
+
     protected Logger logger
 
     AuthenticationProvider() {
@@ -21,16 +22,21 @@ class AuthenticationProvider implements ISVNAuthenticationProvider {
     }
 
     @Override
-    SVNAuthentication requestClientAuthentication(String s, SVNURL svnurl, String s1, SVNErrorMessage svnErrorMessage, SVNAuthentication svnAuthentication, boolean b) {
+    SVNAuthentication requestClientAuthentication(String kind,
+                                                  SVNURL svnurl,
+                                                  String realm,
+                                                  SVNErrorMessage svnErrorMessage,
+                                                  SVNAuthentication previousAuth,
+                                                  boolean authMayBeStored) {
         Boolean isCanceled
         String scmUser
         String scmPass
 
-        scmUser = svnAuthentication.getUserName()
+        scmUser = previousAuth.getUserName()
         logger.lifecycle("Authentication error: " + svnErrorMessage)
         (scmPass, isCanceled) = UiUtils.promptPassword(
-                "Please enter password to access $s1",
-                "Please enter password to access $s1 \n for user $scmUser:")
+                "Please enter password to access $realm",
+                "Please enter password to access $realm \n for user $scmUser:")
 
         if (isCanceled && svnErrorMessage) {
             throw new InvalidUserDataException(" ${svnErrorMessage.getErrorCode().toString()} \n" +

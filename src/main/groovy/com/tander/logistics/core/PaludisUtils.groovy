@@ -24,6 +24,4 @@ class PaludisUtils {
     def updateSet(String setName, String setVersion, String packageGroup, String packageName, String packageVersion) {
 
     }
-
-
 }

@@ -14,6 +14,7 @@ import groovy.text.Template
  * Created by durov_an on 07.12.2016.
  */
 class PaludisPackageEbuildTask extends DefaultTask {
+
     @Input
     String version
     @Input

@@ -10,10 +10,7 @@ enum VersionType {
     Build
 }
 
-
-
 class PackageVersion {
-
 
     String version
     String versionMajor
@@ -35,7 +32,7 @@ class PackageVersion {
                 versionMinor = versionMinor ? versionMinor + 1 : 1
                 break
             case VersionType.Release:
-                versionRelease= versionRelease ? versionRelease + 1 : 1
+                versionRelease = versionRelease ? versionRelease + 1 : 1
                 break
             case VersionType.Build:
                 versionBuild = versionBuild ? versionBuild + 1 : 1

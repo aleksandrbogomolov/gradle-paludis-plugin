@@ -27,7 +27,6 @@ class PaludisPackageVersionTask extends DefaultTask {
 
     @TaskAction
     void run() {
-
         ext = project.extensions.paludis_package
         this.svnUtils = new SvnUtils(this.ext.user, this.ext.password.toCharArray())
         paludisPackage = new PaludisPackage(project, svnUtils)

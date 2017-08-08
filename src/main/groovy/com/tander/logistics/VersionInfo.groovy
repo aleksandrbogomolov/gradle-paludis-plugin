@@ -10,7 +10,6 @@ import groovy.transform.Canonical
 public class VersionInfo {
 
     static final VersionInfo NONE = new VersionInfo()
-
     String scm = 'n/a'
     String branch = ''
     String branchType = ''
@@ -23,5 +22,4 @@ public class VersionInfo {
     String tag = null
     boolean dirty = false
     boolean shallow = false
-
 }

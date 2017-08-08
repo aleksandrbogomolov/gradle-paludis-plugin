@@ -24,7 +24,6 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil
  * Created by durov_an on 01.04.2016.
  * для работы с SVN
  */
-
 class SvnUtils {
 
     ISVNAuthenticationManager authManager
@@ -39,7 +38,6 @@ class SvnUtils {
         clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true), authManager)
         firstRevision = SVNRevision.create(1)
     }
-
 
     def doExport(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) {
         SVNUpdateClient updateClient = clientManager.getUpdateClient()
@@ -157,5 +155,4 @@ class SvnUtils {
                 break
         }
     }
-
 }

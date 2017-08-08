@@ -7,15 +7,14 @@ import org.gradle.api.logging.Logging
  * Created by durov_an on 18.01.2017.
  */
 abstract class ScmBranch implements IScmBranch {
-    protected Logger logger
 
+    protected Logger logger
     String url
     String version
 //    String revisionName
     ScmBranch() {
         logger = Logging.getLogger(this.class)
     }
-
 
     // считаем что структура директорий следующая
     // release/1.127.0/tsddispatcher    т.е. тип ветки / номер релиза / наименование пакета

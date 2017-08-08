@@ -6,7 +6,8 @@ import org.gradle.api.tasks.bundling.Tar
 
 class PaludisPackageDistTask extends Tar {
 
-    @Input String version
+    @Input
+    String version
 
     PaludisPackageDistTask() {
         group = 'distribution'

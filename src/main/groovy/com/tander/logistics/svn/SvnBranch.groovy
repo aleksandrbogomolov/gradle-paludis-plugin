@@ -15,8 +15,8 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil
  * Created by durov_an on 17.01.2017.
  */
 class SvnBranch extends ScmBranch implements IScmBranch{
-    SvnUtils svnUtils
 
+    SvnUtils svnUtils
     SVNRevision revision
 
     @Override
@@ -54,7 +54,6 @@ class SvnBranch extends ScmBranch implements IScmBranch{
         }
     }
 
-
     SvnBranch(SvnUtils svnUtils, String folderPath, String scmUrl, String revision) {
         this.svnUtils = svnUtils
     }
@@ -67,7 +66,6 @@ class SvnBranch extends ScmBranch implements IScmBranch{
             throw new Exception("cant resolve SVN URL at folder: $path")
         }
     }
-
 
     @Override
     String getFirstRevision() {
@@ -110,6 +108,4 @@ class SvnBranch extends ScmBranch implements IScmBranch{
         }
         return firstRevision.number
     }
-
-
 }
