@@ -21,7 +21,7 @@ class PaludisPackageEbuildTask extends DefaultTask {
     @InputFile
     File templateFile
 
-    @OutputFile
+//    @OutputFile
     File ebuildFile
 
     PaludisPackageEbuildTask() {
