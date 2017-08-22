@@ -1,19 +1,30 @@
 package com.tander.logistics.core
 
 import com.tander.logistics.PaludisPackageExtension
-import com.tander.logistics.svn.SvnBranch
+import com.tander.logistics.svn.SvnBranchAbstract
 import com.tander.logistics.svn.SvnUtils
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.tmatesoft.svn.core.*
-import org.tmatesoft.svn.core.wc.*
+import org.tmatesoft.svn.core.ISVNDirEntryHandler
+import org.tmatesoft.svn.core.ISVNLogEntryHandler
+import org.tmatesoft.svn.core.SVNCancelException
+import org.tmatesoft.svn.core.SVNDirEntry
+import org.tmatesoft.svn.core.SVNException
+import org.tmatesoft.svn.core.SVNLogEntry
+import org.tmatesoft.svn.core.SVNNodeKind
+import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
+import org.tmatesoft.svn.core.wc.ISVNEventHandler
+import org.tmatesoft.svn.core.wc.SVNDiffStatus
+import org.tmatesoft.svn.core.wc.SVNEvent
+import org.tmatesoft.svn.core.wc.SVNEventAction
+import org.tmatesoft.svn.core.wc.SVNRevision
+import org.tmatesoft.svn.core.wc.SVNStatusType
 
 /**
  * Created by durov_an on 06.04.2016.
  */
-class PaludisPackage {
-
+class PaludisPackage extends AbstractPackage {
     protected Logger logger
     PaludisPackageExtension ext
     String setName
@@ -26,9 +37,12 @@ class PaludisPackage {
 //    String TBZS_ROOT = "https://sources.corp.tander.ru/svn/real_out/pkg/distfiles"
     String PALUDIS_ROOT = "https://sources.corp.tander.ru/svn/real_out/pkg"
     SvnUtils svnUtils
+
     File releaseDir
-    SvnBranch currBranch
-    SvnBranch prevBranch
+
+    SvnBranchAbstract currBranch
+    SvnBranchAbstract prevBranch
+
 
     def PaludisPackage(Project project, SvnUtils svnUtils) {
         this.ext = project.extensions.paludis_package
@@ -43,8 +57,8 @@ class PaludisPackage {
         packageName = ext.packageName
         setName = ext.setName
 
-        currBranch = new SvnBranch(svnUtils, null, null, null)
-        prevBranch = new SvnBranch(svnUtils, null, null, null)
+        currBranch = new SvnBranchAbstract(svnUtils, null, null, null)
+        prevBranch = new SvnBranchAbstract(svnUtils, null, null, null)
         if (ext.currUrl) {
             currBranch.url = ext.currUrl
         } else {
@@ -120,10 +134,12 @@ class PaludisPackage {
                 }
             }
         }
+
         // запуск обработки лога SVN
         svnUtils.doLog(getPackageEbuildDirUrl(), SVNRevision.create(0), SVNRevision.create(0), 0, isvnLogEntryHandler)
         return build
     }
+
 
     def getPackageVersions(String group, String name) {
         ArrayList packageVersions = []
@@ -147,6 +163,7 @@ class PaludisPackage {
         )
     }
 
+
     String getPackageEbuildDirUrl() {
         return "$PALUDIS_ROOT/repository/$packageGroup/$packageName"
     }
@@ -154,6 +171,7 @@ class PaludisPackage {
     String getPackageTbzDirUrl() {
         return "$PALUDIS_ROOT/distfiles"
     }
+
 
     String getSetEbuildDirUrl() {
         return "$PALUDIS_ROOT/set/$setName"
@@ -208,6 +226,7 @@ class PaludisPackage {
         // если файлы не изменились, то ищем последний коммит в продакшн сборку с номером релиза меньше или равно указанному
         // если это официальная сборка, то номер равен номеру сборки
     }
+
 
     String getPackageVersion() {
         initValues()
@@ -271,6 +290,32 @@ class PaludisPackage {
                 SVNRevision.HEAD,
                 dispatcher)
 
+
         logger.lifecycle("--------------- export finish ---------------")
+    }
+
+    @Override
+    void saveToDisk() {
+
+    }
+
+    @Override
+    void getCRC() {
+
+    }
+
+    @Override
+    File getPackageFile() {
+
+    }
+
+    @Override
+    String getCurrentVersion() {
+        return null
+    }
+
+    @Override
+    String getNewVersion() {
+        return null
     }
 }
