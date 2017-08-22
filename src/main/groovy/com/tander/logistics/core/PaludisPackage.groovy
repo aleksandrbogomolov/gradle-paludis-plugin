@@ -1,9 +1,7 @@
 package com.tander.logistics.core
 
 import com.tander.logistics.PaludisPackageExtension
-import com.tander.logistics.core.PackageVersion
-import com.tander.logistics.core.ScmFile
-import com.tander.logistics.svn.SvnBranch
+import com.tander.logistics.svn.SvnBranchAbstract
 import com.tander.logistics.svn.SvnUtils
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
@@ -26,7 +24,7 @@ import org.tmatesoft.svn.core.wc.SVNStatusType
 /**
  * Created by durov_an on 06.04.2016.
  */
-class PaludisPackage {
+class PaludisPackage extends AbstractPackage {
     protected Logger logger
     PaludisPackageExtension ext
     String setName
@@ -42,8 +40,8 @@ class PaludisPackage {
 
     File releaseDir
 
-    SvnBranch currBranch
-    SvnBranch prevBranch
+    SvnBranchAbstract currBranch
+    SvnBranchAbstract prevBranch
 
 
     def PaludisPackage(Project project, SvnUtils svnUtils) {
@@ -59,8 +57,8 @@ class PaludisPackage {
         packageName = ext.packageName
         setName = ext.setName
 
-        currBranch = new SvnBranch(svnUtils, null, null, null)
-        prevBranch = new SvnBranch(svnUtils, null, null, null)
+        currBranch = new SvnBranchAbstract(svnUtils, null, null, null)
+        prevBranch = new SvnBranchAbstract(svnUtils, null, null, null)
         if (ext.currUrl) {
             currBranch.url = ext.currUrl
         } else {
@@ -294,5 +292,30 @@ class PaludisPackage {
 
 
         logger.lifecycle("--------------- export finish ---------------")
+    }
+
+    @Override
+    void saveToDisk() {
+
+    }
+
+    @Override
+    void getCRC() {
+
+    }
+
+    @Override
+    File getPackageFile() {
+
+    }
+
+    @Override
+    String getCurrentVersion() {
+        return null
+    }
+
+    @Override
+    String getNewVersion() {
+        return null
     }
 }
