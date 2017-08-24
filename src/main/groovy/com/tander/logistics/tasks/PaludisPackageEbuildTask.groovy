@@ -22,6 +22,9 @@ class PaludisPackageEbuildTask extends DefaultTask {
     @TaskAction
     void run() {
         def tree = project.fileTree(new File("template"))
+        if (!project.buildDir.exists()) {
+            project.buildDir.mkdir()
+        }
         tree.getDir().listFiles().each { file ->
             new File(project.buildDir, "$baseName-${file.name}-${version}.ebuild").text = file.text
         }

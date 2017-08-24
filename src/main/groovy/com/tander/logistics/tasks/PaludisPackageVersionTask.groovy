@@ -1,10 +1,9 @@
 package com.tander.logistics.tasks
 
 import com.tander.logistics.PaludisPackageExtension
-import com.tander.logistics.svn.SvnUtils
 import com.tander.logistics.core.PackageVersion
 import com.tander.logistics.core.PaludisPackage
-import com.tander.logistics.core.VersionType
+import com.tander.logistics.svn.SvnUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -14,8 +13,6 @@ import org.gradle.api.tasks.TaskAction
 class PaludisPackageVersionTask extends DefaultTask {
 
     PackageVersion packageVersion = new PackageVersion()
-//    @Output String packageVersion
-
     PaludisPackage paludisPackage
     SvnUtils svnUtils
     PaludisPackageExtension ext
@@ -27,7 +24,7 @@ class PaludisPackageVersionTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        ext = project.extensions.paludis_package
+        ext = project.extensions.tanderPaludis
         this.svnUtils = new SvnUtils(this.ext.user, this.ext.password.toCharArray())
         paludisPackage = new PaludisPackage(project, svnUtils)
 //        packageVersion = paludisPackage.getBuildBySPPRTask(ext.spprTask)

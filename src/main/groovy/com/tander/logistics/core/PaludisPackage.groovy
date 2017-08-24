@@ -6,25 +6,14 @@ import com.tander.logistics.svn.SvnUtils
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.tmatesoft.svn.core.ISVNDirEntryHandler
-import org.tmatesoft.svn.core.ISVNLogEntryHandler
-import org.tmatesoft.svn.core.SVNCancelException
-import org.tmatesoft.svn.core.SVNDirEntry
-import org.tmatesoft.svn.core.SVNException
-import org.tmatesoft.svn.core.SVNLogEntry
-import org.tmatesoft.svn.core.SVNNodeKind
-import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
-import org.tmatesoft.svn.core.wc.ISVNEventHandler
-import org.tmatesoft.svn.core.wc.SVNDiffStatus
-import org.tmatesoft.svn.core.wc.SVNEvent
-import org.tmatesoft.svn.core.wc.SVNEventAction
-import org.tmatesoft.svn.core.wc.SVNRevision
-import org.tmatesoft.svn.core.wc.SVNStatusType
+import org.tmatesoft.svn.core.*
+import org.tmatesoft.svn.core.wc.*
 
 /**
  * Created by durov_an on 06.04.2016.
  */
 class PaludisPackage extends AbstractPackage {
+
     protected Logger logger
     PaludisPackageExtension ext
     String setName
@@ -44,8 +33,8 @@ class PaludisPackage extends AbstractPackage {
     SvnBranchAbstract prevBranch
 
 
-    def PaludisPackage(Project project, SvnUtils svnUtils) {
-        this.ext = project.extensions.paludis_package
+    PaludisPackage(Project project, SvnUtils svnUtils) {
+        this.ext = project.extensions.tanderPaludis
         this.svnUtils = svnUtils
 
         logger = Logging.getLogger(this.class)
@@ -205,7 +194,7 @@ class PaludisPackage extends AbstractPackage {
                         isFileChanged = true
                     }
                 }
-                logger.info(svnDiffStatus.getModificationType().toString() + ' ' + svnDiffStatus.getFile().toString())
+                logger.lifecycle("${svnDiffStatus.getModificationType().toString()}: ${svnDiffStatus.getPath()}")
             }
         }
         logger.lifecycle("--------------- diff start ---------------")
