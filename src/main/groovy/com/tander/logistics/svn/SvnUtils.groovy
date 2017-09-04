@@ -124,10 +124,15 @@ class SvnUtils {
     }
 
     String getWorkingDirectoryUrl(String dirPath) {
-
         SVNWCClient svnwcClient = clientManager.getWCClient()
         SVNInfo svnInfo = svnwcClient.doInfo(new File(dirPath), SVNRevision.WORKING)
         return svnInfo.getURL().toString()
+    }
+
+    String getSomething(String path) {
+        SVNWCClient svnwcClient = clientManager.getWCClient()
+        SVNInfo svnInfo = svnwcClient.doInfo(new File(path), SVNRevision.WORKING)
+        return svnInfo.repositoryRootURL.toString()
     }
 
     static SVNRevision getSvnRevision(String revision) {
