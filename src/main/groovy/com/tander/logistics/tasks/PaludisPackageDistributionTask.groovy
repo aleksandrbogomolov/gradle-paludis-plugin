@@ -1,16 +1,15 @@
 package com.tander.logistics.tasks
 
 import com.tander.logistics.PaludisPackageExtension
-import com.tander.logistics.core.PackageVersion
 import com.tander.logistics.core.ScmFile
 import com.tander.logistics.svn.SvnBranchAbstract
 import com.tander.logistics.svn.SvnUtils
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.bundling.Tar
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
+import org.tmatesoft.svn.core.internal.wc.SVNFileUtil
 import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
 import org.tmatesoft.svn.core.wc.SVNDiffStatus
 import org.tmatesoft.svn.core.wc.SVNRevision
@@ -24,10 +23,9 @@ class PaludisPackageDistributionTask extends DefaultTask {
     SvnUtils svnUtils
     SvnBranchAbstract currBranch
     SvnBranchAbstract prevBranch
-    PackageVersion packageVersion = new PackageVersion()
 
     LinkedHashMap<String, List<String>> wildcards
-    Map<String, PaludisPackageTarTask> paludisPackages
+    Map<String, Boolean> paludisPackages = new HashMap<>()
 
     PaludisPackageDistributionTask() {
         group = "distribution"
@@ -85,8 +83,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
             for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
                 for (wildcard in entry.value)
                     if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
-                        println("$entry.key: $file")
-                        paludisPackages.get(entry.key).isCollect = true
+                        paludisPackages.put(entry.key, true)
                         isMatched = true
                         break
                     }
@@ -96,15 +93,9 @@ class PaludisPackageDistributionTask extends DefaultTask {
             }
         }
 
-        paludisPackages.each { k, v ->
-            println("==========================================")
-            println("==========================================")
-            if (v.isCollect) {
-                v.packageName = "$v.packageName-${generatePackageVersion()}"
-                println("$k:  $v.dst, $v.packageName")
-                v.run()
-            }
-        }
+        project.version = generatePackageVersion()
+
+        generateEbuild()
     }
 
     String generatePackageVersion() { // TODO Добавить проверку версии по паттерну
@@ -138,9 +129,17 @@ class PaludisPackageDistributionTask extends DefaultTask {
         return changedFiles
     }
 
-//    @TaskAction
-//    пока не используется
     def generateEbuild() {
+        def destinationDir = new File(project.buildDir, "ebuilds")
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs()
+            println(destinationDir.exists())
+        }
+        paludisPackages.each { key, value ->
+            if (value) {
+                new File(destinationDir, "$ext.packageName-$key-${project.version}.ebuild").text = new File("template/$key").text
+            }
+        }
 
         // определить каталог с ebuild'ами
 
@@ -163,5 +162,10 @@ class PaludisPackageDistributionTask extends DefaultTask {
 
         // вариант Б, переименовываем старый файл, если есть
 
+    }
+
+    def generateSetEbuild() {
+        def setUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set"
+        def setFromSVN = svnUtils.getSomething()
     }
 }

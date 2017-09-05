@@ -1,7 +1,5 @@
 package com.tander.logistics
 
-import com.tander.logistics.tasks.PaludisPackageDistributionTask
-import com.tander.logistics.tasks.PaludisPackageEbuildTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -15,12 +13,5 @@ class PaludisPackagePlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.extensions.create('tanderPaludis', PaludisPackageExtension)
-        project.tasks.create('paludisPackageDistribution', PaludisPackageDistributionTask)
-        project.tasks.create('paludisPackageEbuild', PaludisPackageEbuildTask)
-//        project.afterEvaluate {
-//            project.tasks.findByName('ttar').dependsOn(project.tasks.findByName('libs'))
-//            project.tasks.findByName('ttar').dependsOn(project.tasks.findByName('img'))
-////            project.tasks.findByName('ttar').dependsOn(project.tasks.findByName('bin'))
-//        }
     }
 }
