@@ -7,6 +7,6 @@ import org.gradle.api.tasks.InputFiles
  * Created by durov_an on 07.12.2016.
  */
 class PaludisSetEbuildTask extends DefaultTask{
-//    @InputFiles
 
+//    @InputFiles
 }

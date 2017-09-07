@@ -8,6 +8,7 @@ import groovy.swing.SwingBuilder
  * "Please enter password for user $user:"
  */
 class UiUtils {
+
     static promptPassword(String windowTitle, String editLabel) {
         String password = ''
         Boolean isCanceled = true

@@ -2,7 +2,6 @@ package com.tander.logistics
 
 import org.gradle.api.Project
 
-
 /**
  * Created by durov_an on 10.02.2016.
  *
@@ -22,6 +21,7 @@ class PaludisPackageExtension {
     String prevUrl
     String currRevision
     String prevRevision
+    String packagePath
 
     String isCheckReleaseNumberNeeded
     String isUpdateReleaseNumberNeeded

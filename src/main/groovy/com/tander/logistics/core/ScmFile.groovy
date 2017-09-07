@@ -10,8 +10,8 @@ import org.gradle.api.logging.Logging
  * Структура для описания скриптов, включаемых в БД релиз
  */
 class ScmFile {
-    protected Logger logger
 
+    protected Logger logger
     String name
     String path
     String url
@@ -25,7 +25,6 @@ class ScmFile {
     String scriptSection
     int wildcardMatchCount = 0
     String wildcardsMatched = ""
-
     LinkedHashMap binding = []
 
     void setMessage(String message) {
@@ -36,7 +35,6 @@ class ScmFile {
         } else {
             taskNumber = ""
         }
-
     }
 
     ScmFile(String name) {
@@ -100,5 +98,4 @@ class ScmFile {
 """
         return releaseString
     }
-
 }

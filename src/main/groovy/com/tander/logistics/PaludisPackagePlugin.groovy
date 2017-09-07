@@ -1,7 +1,5 @@
 package com.tander.logistics
 
-import com.tander.logistics.tasks.PaludisPackageEbuildTask
-import com.tander.logistics.tasks.PaludisPackageVersionTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -14,8 +12,6 @@ class PaludisPackagePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.extensions.create('paludis_package', PaludisPackageExtension)
-        project.tasks.create('paludisPackageVersion', PaludisPackageVersionTask)
-        project.tasks.create('paludisPackageEbuild', PaludisPackageEbuildTask)
+        project.extensions.create('tanderPaludis', PaludisPackageExtension)
     }
 }

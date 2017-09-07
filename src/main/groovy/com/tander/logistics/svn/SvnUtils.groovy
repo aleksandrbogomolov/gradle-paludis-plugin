@@ -9,22 +9,12 @@ import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import org.tmatesoft.svn.core.io.SVNRepository
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory
-import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
-import org.tmatesoft.svn.core.wc.ISVNEventHandler
-import org.tmatesoft.svn.core.wc.SVNClientManager
-import org.tmatesoft.svn.core.wc.SVNDiffClient
-import org.tmatesoft.svn.core.wc.SVNInfo
-import org.tmatesoft.svn.core.wc.SVNLogClient
-import org.tmatesoft.svn.core.wc.SVNRevision
-import org.tmatesoft.svn.core.wc.SVNUpdateClient
-import org.tmatesoft.svn.core.wc.SVNWCClient
-import org.tmatesoft.svn.core.wc.SVNWCUtil
+import org.tmatesoft.svn.core.wc.*
 
 /**
  * Created by durov_an on 01.04.2016.
  * для работы с SVN
  */
-
 class SvnUtils {
 
     ISVNAuthenticationManager authManager
@@ -39,7 +29,6 @@ class SvnUtils {
         clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true), authManager)
         firstRevision = SVNRevision.create(1)
     }
-
 
     def doExport(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) {
         SVNUpdateClient updateClient = clientManager.getUpdateClient()
@@ -126,10 +115,15 @@ class SvnUtils {
     }
 
     String getWorkingDirectoryUrl(String dirPath) {
-
         SVNWCClient svnwcClient = clientManager.getWCClient()
         SVNInfo svnInfo = svnwcClient.doInfo(new File(dirPath), SVNRevision.WORKING)
         return svnInfo.getURL().toString()
+    }
+
+    String getSomething(String path) {
+        SVNWCClient svnwcClient = clientManager.getWCClient()
+        SVNInfo svnInfo = svnwcClient.doInfo(new File(path), SVNRevision.WORKING)
+        return svnInfo.repositoryRootURL.toString()
     }
 
     static SVNRevision getSvnRevision(String revision) {
@@ -157,5 +151,4 @@ class SvnUtils {
                 break
         }
     }
-
 }

@@ -1,6 +1,6 @@
 package com.tander.logistics.svn
 
-import com.tander.logistics.core.IScmBranch
+import com.tander.logistics.core.AbstractScmBranch
 import com.tander.logistics.core.ScmBranch
 import org.tmatesoft.svn.core.ISVNLogEntryHandler
 import org.tmatesoft.svn.core.SVNCancelException
@@ -14,7 +14,8 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil
 /**
  * Created by durov_an on 17.01.2017.
  */
-class SvnBranch extends ScmBranch implements IScmBranch{
+class SvnBranchAbstract extends AbstractScmBranch implements ScmBranch {
+
     SvnUtils svnUtils
 
     SVNRevision revision
@@ -26,7 +27,6 @@ class SvnBranch extends ScmBranch implements IScmBranch{
 
     @Override
     void export(String path) {
-
         ISVNEventHandler dispatcher = new ISVNEventHandler() {
             @Override
             void handleEvent(SVNEvent svnEvent, double v) throws SVNException {
@@ -54,8 +54,7 @@ class SvnBranch extends ScmBranch implements IScmBranch{
         }
     }
 
-
-    SvnBranch(SvnUtils svnUtils, String folderPath, String scmUrl, String revision) {
+    SvnBranchAbstract(SvnUtils svnUtils, String folderPath, String scmUrl, String revision) {
         this.svnUtils = svnUtils
     }
 
@@ -67,7 +66,6 @@ class SvnBranch extends ScmBranch implements IScmBranch{
             throw new Exception("cant resolve SVN URL at folder: $path")
         }
     }
-
 
     @Override
     String getFirstRevision() {
@@ -110,6 +108,4 @@ class SvnBranch extends ScmBranch implements IScmBranch{
         }
         return firstRevision.number
     }
-
-
 }
