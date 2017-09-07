@@ -141,7 +141,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
         paludisPackages.each { key, value ->
             if (value) {
-                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").text = new File("template/$key").text
+                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
             }
         }
     }
