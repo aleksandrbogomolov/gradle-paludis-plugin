@@ -1,5 +1,5 @@
 group 'com.tander.logistics'
-version '0.0.2-TEST'
+version '0.3'
 
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
@@ -45,6 +45,4 @@ publishing {
 test {
     systemProperty 'domainUser', project.getProperty('domainUser')
     systemProperty 'domainPassword', project.getProperty('domainPassword')
-//    systemProperty 'domainUser', 'bogomolov_av'
-//    systemProperty 'domainPassword', 'qwe123ZXC456'
 }

@@ -1,8 +1,9 @@
 package com.tander.logistics.svn
 
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
-import org.tmatesoft.svn.core.*
+import org.tmatesoft.svn.core.ISVNDirEntryHandler
+import org.tmatesoft.svn.core.ISVNLogEntryHandler
+import org.tmatesoft.svn.core.SVNDepth
+import org.tmatesoft.svn.core.SVNURL
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
@@ -19,7 +20,6 @@ class SvnUtils {
     ISVNAuthenticationManager authManager
     SVNClientManager clientManager
     SVNRevision firstRevision
-    Logger logger
 
     SvnUtils(String username, char[] password) {
         DAVRepositoryFactory.setup()
@@ -28,7 +28,6 @@ class SvnUtils {
         authManager.setAuthenticationProvider(provider)
         clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true), authManager)
         firstRevision = SVNRevision.create(1)
-        logger = Logging.getLogger(this.class)
     }
 
     def doExport(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) {
@@ -125,37 +124,6 @@ class SvnUtils {
         SVNWCClient svnwcClient = clientManager.getWCClient()
         SVNInfo svnInfo = svnwcClient.doInfo(new File(path), SVNRevision.WORKING)
         return svnInfo.repositoryRootURL.toString()
-    }
-
-    String getSvnFileByPath(String repoUrl, String path, String buildDir) throws SVNException {
-        def tmpPath = "$buildDir/tmp"
-        DAVRepositoryFactory.setup()
-        SVNRepository repository = null
-        def out = null
-        def fos = new FileOutputStream(tmpPath)
-        try {
-            repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(repoUrl))
-            repository.setAuthenticationManager(authManager)
-            SVNNodeKind node = repository.checkPath(path, -1)
-            if (node == SVNNodeKind.NONE) {
-                logger.error("There is file at: $repoUrl $path.")
-            } else if (node == SVNNodeKind.DIR) {
-                logger.error("The entry at $repoUrl $path is a directory while a file was expected.")
-            }
-            out = new ByteArrayOutputStream()
-            repository.getFile(path, -1, new SVNProperties(), out)
-            out.writeTo(fos)
-            return tmpPath
-        } catch (SVNException e) {
-            logger.error(e.errorMessage.toString())
-        } finally {
-            if (out != null) {
-                out.close()
-            }
-            if (fos != null) {
-                fos.close()
-            }
-        }
     }
 
     static SVNRevision getSvnRevision(String revision) {

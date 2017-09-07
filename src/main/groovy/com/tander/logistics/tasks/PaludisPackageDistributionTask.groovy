@@ -94,7 +94,6 @@ class PaludisPackageDistributionTask extends DefaultTask {
             }
         }
 
-//        project.version = generatePackageVersion()
         generatePackageVersion()
         generateEbuild()
 //        generateSetEbuild()
