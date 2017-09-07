@@ -1,18 +1,17 @@
 package com.tander.logistics.tasks
 
 import com.tander.logistics.PaludisPackageExtension
+import com.tander.logistics.core.PackageVersion
 import com.tander.logistics.core.ScmFile
 import com.tander.logistics.svn.SvnBranchAbstract
 import com.tander.logistics.svn.SvnUtils
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
-import org.tmatesoft.svn.core.internal.wc.SVNFileUtil
-import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
-import org.tmatesoft.svn.core.wc.SVNDiffStatus
-import org.tmatesoft.svn.core.wc.SVNRevision
+import org.tmatesoft.svn.core.wc.*
 
 /**
  * Created by durov_an on 01.04.2016.
@@ -23,6 +22,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
     SvnUtils svnUtils
     SvnBranchAbstract currBranch
     SvnBranchAbstract prevBranch
+    PackageVersion packageVersion
 
     LinkedHashMap<String, List<String>> wildcards
     Map<String, Boolean> paludisPackages = new HashMap<>()
@@ -31,6 +31,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
         group = "distribution"
         description = "get package version "
         this.ext = project.extensions.tanderPaludis
+        this.packageVersion = new PackageVersion()
     }
 
     void initSVN() {
@@ -93,18 +94,22 @@ class PaludisPackageDistributionTask extends DefaultTask {
             }
         }
 
-        project.version = generatePackageVersion()
-
+//        project.version = generatePackageVersion()
+        generatePackageVersion()
         generateEbuild()
+//        generateSetEbuild()
     }
 
-    String generatePackageVersion() { // TODO Добавить проверку версии по паттерну
+    void generatePackageVersion() { // TODO Добавить проверку версии по паттерну
         def strings = currBranch.packageNameFromUrl.toString().split('-')
-        if (currBranch.url.toString().contains('release')) {
-            return strings.last()
+        if (currBranch.url.toString().contains('release') || currBranch.url.toString().contains('tags')) {
+            packageVersion.isRelease = true
+            packageVersion.version = strings.last()
         } else {
-            return "${strings.last()}.${strings[1].substring(2)}"
+            packageVersion.isRelease = false
+            packageVersion.version = "${strings.last()}.${strings[1].substring(2)}"
         }
+//        return version
     }
 
     List<String> getChangedFiles(List<String> changedFiles) {
@@ -137,35 +142,22 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
         paludisPackages.each { key, value ->
             if (value) {
-                new File(destinationDir, "$ext.packageName-$key-${project.version}.ebuild").text = new File("template/$key").text
+                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").text = new File("template/$key").text
             }
         }
-
-        // определить каталог с ebuild'ами
-
-        // вытянуть лог по каталогу
-
-        // если собираем релиз,
-        // то вытягиваем сет предыдущего релиза, находим в нём номер релиза нашего подпроекта
-        //
-
-//        packageVersion = paludisPackage.getBuildBySPPRTask(spprTaskNumber).version
-//        if (!packageVersion || spprTaskNumber) {
-//            packageVersion = paludisPackage.getBuildBySPPRTask(null).version
-//        }
-
-        // найти в логе последний коммит с номером задачи
-
-        // если такой коммит есть, то берём номер из подходящего файла
-
-        // вариант А, возвращаем новый номер
-
-        // вариант Б, переименовываем старый файл, если есть
-
     }
 
     def generateSetEbuild() {
-        def setUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set"
-        def setFromSVN = svnUtils.getSomething()
+        def setUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/$ext.setName"
+        svnUtils.doExport("$setUrl/tomcatsrv-rc-web-1.148.1000.ebuild", "$project.buildDir.path/tmp", SVNRevision.HEAD, new ISVNEventHandler() {
+            @Override
+            void handleEvent(SVNEvent event, double progress) throws SVNException {
+                logger.lifecycle("Exporting file " + event.getFile().toString())
+            }
+
+            @Override
+            void checkCancelled() throws SVNCancelException {
+            }
+        })
     }
 }

@@ -16,7 +16,7 @@ class PaludisPackageTarTask extends Tar {
         destinationDir = new File(project.buildDir, "distributions")
         onlyIf {
             def map = project.tasks.findByName("paludisPackageDistribution").property("paludisPackages") as HashMap
-            archiveName = "$ext.packageName-$baseName-${project.version}.$extension"
+            archiveName = "$ext.packageName-$baseName-${project.tasks.findByName("paludisPackageDistribution").property("packageVersion").version}.$extension"
             return map.get(name)
         }
     }
