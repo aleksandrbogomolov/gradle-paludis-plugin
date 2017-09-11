@@ -24,6 +24,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
     SvnBranchAbstract prevBranch
     PackageVersion packageVersion
 
+    boolean doCheckSVN
     LinkedHashMap<String, List<String>> wildcards
     Map<String, Boolean> paludisPackages = new HashMap<>()
 
@@ -78,19 +79,25 @@ class PaludisPackageDistributionTask extends DefaultTask {
     @TaskAction
     void run() {
         initSVN()
-        def changedFiles = getChangedFiles(new ArrayList<String>())
-        for (file in changedFiles) {
-            boolean isMatched = false
-            for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
-                for (wildcard in entry.value)
-                    if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
-                        paludisPackages.put(entry.key, true)
-                        isMatched = true
+        if (doCheckSVN) {
+            def changedFiles = getChangedFiles(new ArrayList<String>())
+            for (file in changedFiles) {
+                boolean isMatched = false
+                for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
+                    for (wildcard in entry.value)
+                        if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
+                            paludisPackages.put(entry.key, true)
+                            isMatched = true
+                            break
+                        }
+                    if (isMatched) {
                         break
                     }
-                if (isMatched) {
-                    break
                 }
+            }
+        } else {
+            for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
+                paludisPackages.put(entry.key, true)
             }
         }
 
