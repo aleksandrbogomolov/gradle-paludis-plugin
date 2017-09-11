@@ -5,10 +5,8 @@ import com.tander.logistics.core.PackageVersion
 import com.tander.logistics.core.ScmFile
 import com.tander.logistics.svn.SvnBranchAbstract
 import com.tander.logistics.svn.SvnUtils
-import org.apache.commons.io.FilenameUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
 import org.tmatesoft.svn.core.wc.*
@@ -78,37 +76,25 @@ class PaludisPackageDistributionTask extends DefaultTask {
     @TaskAction
     void run() {
         initSVN()
-        def changedFiles = getChangedFiles(new ArrayList<String>())
-        for (file in changedFiles) {
-            boolean isMatched = false
-            for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
-                for (wildcard in entry.value)
-                    if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
-                        paludisPackages.put(entry.key, true)
-                        isMatched = true
-                        break
-                    }
-                if (isMatched) {
-                    break
-                }
-            }
-        }
+//        def changedFiles = getChangedFiles(new ArrayList<String>())
+//        for (file in changedFiles) {
+//            boolean isMatched = false
+//            for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
+//                for (wildcard in entry.value)
+//                    if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
+//                        paludisPackages.put(entry.key, true)
+//                        isMatched = true
+//                        break
+//                    }
+//                if (isMatched) {
+//                    break
+//                }
+//            }
+//        }
 
-        generatePackageVersion()
-        generateEbuild()
-//        generateSetEbuild()
-    }
-
-    void generatePackageVersion() { // TODO Добавить проверку версии по паттерну
-        def strings = currBranch.packageNameFromUrl.toString().split('-')
-        if (currBranch.url.toString().contains('release') || currBranch.url.toString().contains('tags')) {
-            packageVersion.isRelease = true
-            packageVersion.version = strings.last()
-        } else {
-            packageVersion.isRelease = false
-            packageVersion.version = "${strings.last()}.${strings[1].substring(2)}"
-        }
-//        return version
+//        generatePackageVersion()
+//        generateEbuild()
+        generateSetEbuild()
     }
 
     List<String> getChangedFiles(List<String> changedFiles) {
@@ -133,6 +119,17 @@ class PaludisPackageDistributionTask extends DefaultTask {
         return changedFiles
     }
 
+    void generatePackageVersion() { // TODO Добавить проверку версии по паттерну
+        def strings = currBranch.packageNameFromUrl.toString().split('-')
+        if (currBranch.url.toString().contains('release') || currBranch.url.toString().contains('tags')) {
+            packageVersion.isRelease = true
+            packageVersion.version = strings.last()
+        } else {
+            packageVersion.isRelease = false
+            packageVersion.version = "${strings.last()}.${strings[1].substring(2)}"
+        }
+    }
+
     def generateEbuild() {
         def destinationDir = new File(project.buildDir, "ebuilds")
         if (!destinationDir.exists()) {
@@ -148,15 +145,16 @@ class PaludisPackageDistributionTask extends DefaultTask {
 
     def generateSetEbuild() {
         def setUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/$ext.setName"
-        svnUtils.doExport("$setUrl/tomcatsrv-rc-web-1.148.1000.ebuild", "$project.buildDir.path/tmp", SVNRevision.HEAD, new ISVNEventHandler() {
-            @Override
-            void handleEvent(SVNEvent event, double progress) throws SVNException {
-                logger.lifecycle("Exporting file " + event.getFile().toString())
-            }
-
-            @Override
-            void checkCancelled() throws SVNCancelException {
-            }
-        })
+        svnUtils.doExportByPath(setUrl, "/tomcatsrv-rc-web-1.148.10.ebuild", "$project.buildDir.path/tmp")
+//        svnUtils.doExport("$setUrl/tomcatsrv-rc-web-1.148.1000.ebuild", "$project.buildDir.path/tmp", SVNRevision.HEAD, new ISVNEventHandler() {
+//            @Override
+//            void handleEvent(SVNEvent event, double progress) throws SVNException {
+//                logger.lifecycle("Exporting file " + event.getFile().toString())
+//            }
+//
+//            @Override
+//            void checkCancelled() throws SVNCancelException {
+//            }
+//        })
     }
 }
