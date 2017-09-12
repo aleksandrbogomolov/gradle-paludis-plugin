@@ -5,11 +5,14 @@ import com.tander.logistics.core.PackageVersion
 import com.tander.logistics.core.ScmFile
 import com.tander.logistics.svn.SvnBranchAbstract
 import com.tander.logistics.svn.SvnUtils
+import org.apache.commons.io.FilenameUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
-import org.tmatesoft.svn.core.wc.*
+import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
+import org.tmatesoft.svn.core.wc.SVNDiffStatus
+import org.tmatesoft.svn.core.wc.SVNRevision
 
 /**
  * Created by durov_an on 01.04.2016.
@@ -22,6 +25,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
     SvnBranchAbstract prevBranch
     PackageVersion packageVersion
 
+    boolean doCheckSVN
     LinkedHashMap<String, List<String>> wildcards
     Map<String, Boolean> paludisPackages = new HashMap<>()
 
@@ -76,25 +80,41 @@ class PaludisPackageDistributionTask extends DefaultTask {
     @TaskAction
     void run() {
         initSVN()
-//        def changedFiles = getChangedFiles(new ArrayList<String>())
-//        for (file in changedFiles) {
-//            boolean isMatched = false
-//            for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
-//                for (wildcard in entry.value)
-//                    if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
-//                        paludisPackages.put(entry.key, true)
-//                        isMatched = true
-//                        break
-//                    }
-//                if (isMatched) {
-//                    break
-//                }
-//            }
-//        }
+        if (doCheckSVN) {
+            def changedFiles = getChangedFiles(new ArrayList<String>())
+            for (file in changedFiles) {
+                boolean isMatched = false
+                for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
+                    for (wildcard in entry.value)
+                        if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
+                            paludisPackages.put(entry.key, true)
+                            isMatched = true
+                            break
+                        }
+                    if (isMatched) {
+                        break
+                    }
+                }
+            }
+        } else {
+            for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
+                paludisPackages.put(entry.key, true)
+            }
+        }
 
-//        generatePackageVersion()
-//        generateEbuild()
-        generateSetEbuild()
+        generatePackageVersion()
+        generateEbuild()
+    }
+
+    void generatePackageVersion() { // TODO Добавить проверку версии по паттерну
+        def strings = currBranch.packageNameFromUrl.toString().split('-')
+        if (currBranch.url.toString().contains('release') || currBranch.url.toString().contains('tags')) {
+            packageVersion.isRelease = true
+            packageVersion.version = strings.last()
+        } else {
+            packageVersion.isRelease = false
+            packageVersion.version = "${strings.last()}.${strings[1].substring(2)}"
+        }
     }
 
     List<String> getChangedFiles(List<String> changedFiles) {
@@ -117,17 +137,6 @@ class PaludisPackageDistributionTask extends DefaultTask {
                 diffStatusHandler)
 
         return changedFiles
-    }
-
-    void generatePackageVersion() { // TODO Добавить проверку версии по паттерну
-        def strings = currBranch.packageNameFromUrl.toString().split('-')
-        if (currBranch.url.toString().contains('release') || currBranch.url.toString().contains('tags')) {
-            packageVersion.isRelease = true
-            packageVersion.version = strings.last()
-        } else {
-            packageVersion.isRelease = false
-            packageVersion.version = "${strings.last()}.${strings[1].substring(2)}"
-        }
     }
 
     def generateEbuild() {

@@ -8,6 +8,8 @@ class PaludisPackageTarTask extends Tar {
 
     PaludisPackageExtension ext
 
+    boolean forceDistribution
+
     PaludisPackageTarTask() {
         this.ext = project.extensions.tanderPaludis
         group = 'distribution'
@@ -17,7 +19,7 @@ class PaludisPackageTarTask extends Tar {
         onlyIf {
             def map = project.tasks.findByName("paludisPackageDistribution").property("paludisPackages") as HashMap
             archiveName = "$ext.packageName-$baseName-${project.tasks.findByName("paludisPackageDistribution").property("packageVersion").version}.$extension"
-            return map.get(name)
+            return map.get(name) || forceDistribution
         }
     }
 }
