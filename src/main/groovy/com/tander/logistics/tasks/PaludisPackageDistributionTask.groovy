@@ -8,25 +8,30 @@ import com.tander.logistics.svn.SvnUtils
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.tmatesoft.svn.core.SVNCancelException
 import org.tmatesoft.svn.core.SVNException
 import org.tmatesoft.svn.core.SVNNodeKind
-import org.tmatesoft.svn.core.wc.*
+import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
+import org.tmatesoft.svn.core.wc.SVNDiffStatus
+import org.tmatesoft.svn.core.wc.SVNRevision
 
 /**
  * Created by durov_an on 01.04.2016.
  */
 class PaludisPackageDistributionTask extends DefaultTask {
 
+    String svnSetPath = 'https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/'
+    def parentEbuild = "$project.buildDir.path/parentEbuild.ebuild"
+
     PaludisPackageExtension ext
     SvnUtils svnUtils
     SvnBranchAbstract currBranch
     SvnBranchAbstract prevBranch
     PackageVersion packageVersion
-
     boolean doCheckSVN
+
     LinkedHashMap<String, List<String>> wildcards
     Map<String, Boolean> paludisPackages = new HashMap<>()
+    Map<String, String> packages = new HashMap<>()
 
     PaludisPackageDistributionTask() {
         group = "distribution"
@@ -86,7 +91,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
                 for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
                     for (wildcard in entry.value)
                         if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
-                            paludisPackages.put(entry.key, true)
+                            addToPaludisPackages(entry.key)
                             isMatched = true
                             break
                         }
@@ -97,13 +102,17 @@ class PaludisPackageDistributionTask extends DefaultTask {
             }
         } else {
             for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
-                paludisPackages.put(entry.key, true)
+                addToPaludisPackages(entry.key)
             }
         }
 
         generatePackageVersion()
         generateEbuild()
-//        generateSetEbuild()
+        generateSetEbuild()
+    }
+
+    void addToPaludisPackages(String key) {
+        paludisPackages.put(key, true)
     }
 
     void generatePackageVersion() { // TODO Добавить проверку версии по паттерну
@@ -143,26 +152,51 @@ class PaludisPackageDistributionTask extends DefaultTask {
         def destinationDir = new File(project.buildDir, "ebuilds")
         if (!destinationDir.exists()) {
             destinationDir.mkdirs()
-            println(destinationDir.exists())
         }
-        paludisPackages.each { key, value ->
-            if (value) {
+        wildcards.each { key, value ->
+            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
                 new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
             }
         }
     }
 
     def generateSetEbuild() {
-        def setUrl = "https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/$ext.setName"
-        svnUtils.doExport("$setUrl/tomcatsrv-rc-web-1.148.1000.ebuild", "$project.buildDir.path/tmp", SVNRevision.HEAD, new ISVNEventHandler() {
-            @Override
-            void handleEvent(SVNEvent event, double progress) throws SVNException {
-                logger.lifecycle("Exporting file " + event.getFile().toString())
+        svnUtils.doImportSetByPath("$svnSetPath$ext.setName", "$ext.setName-${packageVersion.version}.ebuild", parentEbuild, packageVersion)
+        if (new File(parentEbuild).text == "") {
+            new File(parentEbuild).text = new File("template/set").text
+            wildcards.keySet().each { k ->
+                addToPaludisPackages(k)
             }
+        }
+        doNewSetEbuild()
+    }
 
-            @Override
-            void checkCancelled() throws SVNCancelException {
+    void doNewSetEbuild() {
+        def packageList = new ArrayList<String>()
+        wildcards.each { k, v ->
+            packageList.add("$ext.setName-$k-$packageVersion.version")
+        }
+        paludisPackages.each { k, v ->
+            packageList.each { tbz ->
+                if (tbz.contains(k)) {
+                    packages.put(k, tbz)
+                }
             }
-        })
+        }
+        StringBuilder text = new StringBuilder("")
+        new File(parentEbuild).eachLine { line ->
+            text.append(checkLine(line))
+        }
+        new File("$project.buildDir.path/ebuilds/${ext.setName}.${packageVersion.version}.ebuild").write(text.toString(), 'UTF-8')
+    }
+
+    String checkLine(String line) {
+        String result = "$line\n"
+        packages.each { k, v ->
+            if (line.contains(k)) {
+                result = "${line.substring(0, line.indexOf('/') + 1)}$v\n"
+            }
+        }
+        return result
     }
 }
