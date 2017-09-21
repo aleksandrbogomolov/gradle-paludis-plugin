@@ -153,9 +153,8 @@ class PaludisPackageDistributionTask extends DefaultTask {
         if (!destinationDir.exists()) {
             destinationDir.mkdirs()
         }
-//        project.tasks.findByName("paludisPackageDistribution").property("paludisPackages") as HashMap
-        paludisPackages.each { key, value ->
-            if (value) {
+        wildcards.each { key, value ->
+            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
                 new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
             }
         }
