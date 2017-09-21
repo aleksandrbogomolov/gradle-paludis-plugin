@@ -1,5 +1,6 @@
 package com.tander.logistics.svn
 
+import com.tander.logistics.core.PackageVersion
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.tmatesoft.svn.core.*
@@ -111,7 +112,7 @@ class SvnUtils {
     void testConnection(String svnUrl) {
         SVNURL url = new SVNURL(svnUrl, true)
         SVNRepository repository = SVNRepositoryFactory.create(url, null);
-        repository.setAuthenticationManager(authManager);
+        repository.setAuthenticationManager(authManager)
         repository.testConnection()
     }
 
@@ -121,7 +122,7 @@ class SvnUtils {
         return svnInfo.getURL().toString()
     }
 
-    void doExportByPath(String repoUrl, String path, String filePath) throws SVNException {
+    void doImportSetByPath(String repoUrl, String path, String filePath, PackageVersion packageVersion) throws SVNException {
         DAVRepositoryFactory.setup()
         SVNRepository repository
         def out = null
@@ -129,15 +130,15 @@ class SvnUtils {
         try {
             repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(repoUrl))
             repository.setAuthenticationManager(authManager)
-            SVNNodeKind node = repository.checkPath(path, -1)
-            if (node == SVNNodeKind.NONE) {
-                logger.error("There is not file at: $repoUrl$path")
-            } else if (node == SVNNodeKind.DIR) {
-                logger.error("The entry at $repoUrl $path is a directory while a file was expected.")
+            SVNNodeKind node = repository.checkPath(path, SVNRevision.HEAD.getNumber())
+            if (node == SVNNodeKind.NONE && packageVersion.isRelease) {
+                path = findPreviousSetVersion(repository, path)
+            } else if (node == SVNNodeKind.NONE && !packageVersion.isRelease) {
+                def chainPath = (path - ".ebuild").split("-")
+                path = "${chainPath[0]}-${chainPath[1]}-${chainPath[2]}-${chainPath[3].substring(0, chainPath[3].lastIndexOf("."))}.ebuild"
             }
-            println(node.toString())
             out = new ByteArrayOutputStream()
-            repository.getFile(path, -1, new SVNProperties(), out)
+            repository.getFile(path, SVNRevision.HEAD.getNumber(), new SVNProperties(), out)
             out.writeTo(fos)
         } catch (SVNException e) {
             logger.error(e.errorMessage.toString())
@@ -151,29 +152,27 @@ class SvnUtils {
         }
     }
 
-    static SVNRevision getSvnRevision(String revision) {
-        switch (revision) {
-            case 'HEAD':
-                return SVNRevision.HEAD
-                break
-            case 'WORKING':
-                return SVNRevision.WORKING
-                break
-            case 'PREVIOUS':
-                return SVNRevision.PREVIOUS
-                break
-            case 'BASE':
-                return SVNRevision.BASE
-                break
-            case 'COMMITTED':
-                return SVNRevision.COMMITTED
-                break
-            case 'UNDEFINED':
-                return SVNRevision.UNDEFINED
-                break
-            default:
-                return SVNRevision.create(revision as long)
-                break
+    String findPreviousSetVersion(SVNRepository repository, String path) {
+        String result = path
+        def regex = ~/\d*\.\d*\.\d*/
+        def dir = new ArrayList<SVNDirEntry>()
+        repository.getDir(".", SVNRevision.HEAD.getNumber(), new SVNProperties(), dir)
+        def ebuildNames = new ArrayList()
+        ebuildNames.add(path)
+        dir.each { f ->
+            def name = f.getName() - ".ebuild"
+            def chainName = name.split("-")
+            if (regex.matcher(chainName.last()).matches()) {
+                ebuildNames.add(name)
+            }
+        }
+        ebuildNames.sort()
+        ebuildNames.each { e ->
+            if (e == path) {
+                return result
+            } else {
+                result = e
+            }
         }
     }
 }
