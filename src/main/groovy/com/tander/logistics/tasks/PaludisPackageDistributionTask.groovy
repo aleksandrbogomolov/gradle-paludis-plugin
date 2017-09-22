@@ -187,7 +187,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
         new File(parentEbuild).eachLine { line ->
             text.append(checkLine(line))
         }
-        new File("$project.buildDir.path/ebuilds/${ext.setName}.${packageVersion.version}.ebuild").write(text.toString(), 'UTF-8')
+        new File("$project.buildDir.path/ebuilds/${ext.setName}-${packageVersion.version}.ebuild").write(text.toString(), 'UTF-8')
     }
 
     String checkLine(String line) {
