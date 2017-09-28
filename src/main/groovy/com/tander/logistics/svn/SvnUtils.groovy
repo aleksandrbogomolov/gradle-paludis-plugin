@@ -134,8 +134,8 @@ class SvnUtils {
             if (node == SVNNodeKind.NONE && packageVersion.isRelease) {
                 path = findPreviousSetVersion(repository, path)
             } else if (node == SVNNodeKind.NONE && !packageVersion.isRelease) {
-                def chainPath = (path - ".ebuild").split("-")
-                path = "${chainPath[0]}-${chainPath[1]}-${chainPath[2]}-${chainPath[3].substring(0, chainPath[3].lastIndexOf("."))}.ebuild"
+                def chainPath = (path - ".ebuild")
+                path = "${chainPath.substring(0, chainPath.lastIndexOf("."))}.ebuild"
             }
             out = new ByteArrayOutputStream()
             repository.getFile(path, SVNRevision.HEAD.getNumber(), new SVNProperties(), out)
