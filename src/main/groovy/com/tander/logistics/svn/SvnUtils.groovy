@@ -163,7 +163,7 @@ class SvnUtils {
             def name = f.getName() - ".ebuild"
             def chainName = name.split("-")
             if (regex.matcher(chainName.last()).matches()) {
-                ebuildNames.add(name)
+                ebuildNames.add("${name}.ebuild")
             }
         }
         ebuildNames.sort()
@@ -174,5 +174,6 @@ class SvnUtils {
                 result = e
             }
         }
+        return result
     }
 }
