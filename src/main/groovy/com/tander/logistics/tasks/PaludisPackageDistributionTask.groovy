@@ -155,6 +155,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
         wildcards.each { key, value ->
             if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
+                paludisPackages.put(key, true)
                 new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
             }
         }
