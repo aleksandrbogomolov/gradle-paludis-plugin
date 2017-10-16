@@ -167,7 +167,7 @@ class SvnUtils {
             }
         }
         ebuildNames.sort()
-        ebuildNames.each { e ->
+        for (e in ebuildNames) {
             if (e == path) {
                 return result
             } else {
