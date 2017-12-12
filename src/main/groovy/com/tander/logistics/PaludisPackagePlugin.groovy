@@ -12,6 +12,6 @@ class PaludisPackagePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.extensions.create('tanderPaludis', PaludisPackageExtension)
+        project.extensions.create('tanderPaludis', PaludisPackageExtension, project)
     }
 }

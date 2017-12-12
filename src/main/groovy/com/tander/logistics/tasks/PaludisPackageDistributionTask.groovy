@@ -41,7 +41,8 @@ class PaludisPackageDistributionTask extends DefaultTask {
     }
 
     void initSVN() {
-        this.svnUtils = new SvnUtils(this.ext.user, this.ext.password.toCharArray())
+//        this.svnUtils = new SvnUtils(this.ext.user, this.ext.password.toCharArray())
+        this.svnUtils = new SvnUtils(ext)
         currBranch = new SvnBranchAbstract(svnUtils, null, null, null)
         prevBranch = new SvnBranchAbstract(svnUtils, null, null, null)
 

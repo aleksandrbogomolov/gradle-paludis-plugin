@@ -7,7 +7,7 @@ import groovy.transform.Canonical
  */
 
 @Canonical
-public class VersionInfo {
+class VersionInfo {
 
     static final VersionInfo NONE = new VersionInfo()
     String scm = 'n/a'

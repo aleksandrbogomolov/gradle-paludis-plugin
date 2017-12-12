@@ -10,12 +10,9 @@ import org.gradle.api.Project
 class PaludisPackageExtension {
 
     Project project
-    Boolean isTest = false
-    String scmType
     String user = ''
     String password = ''
 
-    String taskNumber
     String releaseVersion
     String currUrl
     String prevUrl
@@ -23,23 +20,17 @@ class PaludisPackageExtension {
     String prevRevision
     String packagePath
 
-    String isCheckReleaseNumberNeeded
-    String isUpdateReleaseNumberNeeded
-
-    String buildTaskNumber
-
     String packageName = ''
     String packageGroup = ''
     String setName = ''
-    String spprTask = ''
-    String ebuildTemplate = ''
     private VersionInfo info
 
     VersionInfo getInfo() {
         info
     }
 
-    PaludisPackageExtension() {
+    PaludisPackageExtension(Project project) {
         info = new VersionInfo()
+        this.project = project
     }
 }

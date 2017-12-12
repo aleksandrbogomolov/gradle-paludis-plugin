@@ -1,5 +1,6 @@
 package com.tander.logistics.svn
 
+import com.tander.logistics.PaludisPackageExtension
 import com.tander.logistics.core.PackageVersion
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -22,10 +23,10 @@ class SvnUtils {
     SVNRevision firstRevision
     Logger logger
 
-    SvnUtils(String username, char[] password) {
+    SvnUtils(PaludisPackageExtension ext) {
         DAVRepositoryFactory.setup()
-        ISVNAuthenticationProvider provider = new AuthenticationProvider()
-        authManager = SVNWCUtil.createDefaultAuthenticationManager(username, password)
+        ISVNAuthenticationProvider provider = new AuthenticationProvider(ext)
+        authManager = SVNWCUtil.createDefaultAuthenticationManager(ext.user, ext.password.toCharArray())
         authManager.setAuthenticationProvider(provider)
         clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true), authManager)
         firstRevision = SVNRevision.create(1)
