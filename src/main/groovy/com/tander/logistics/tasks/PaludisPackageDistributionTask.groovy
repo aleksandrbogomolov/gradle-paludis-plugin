@@ -92,7 +92,6 @@ class PaludisPackageDistributionTask extends DefaultTask {
                     for (wildcard in entry.value)
                         if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
                             addToPaludisPackages(entry.key)
-                            println("${entry.key}")
                             isMatched = true
                             break
                         }
