@@ -139,7 +139,14 @@ class SvnUtils {
                 path = "${chainPath.substring(0, chainPath.lastIndexOf("."))}.ebuild"
             }
             out = new ByteArrayOutputStream()
-            repository.getFile(path, SVNRevision.HEAD.getNumber(), new SVNProperties(), out)
+            try {
+                repository.getFile(path, SVNRevision.HEAD.getNumber(), new SVNProperties(), out)
+            } catch (SVNException e) {
+                if (!packageVersion.isRelease) {
+                    path = findPreviousSetVersion(repository, path)
+                    repository.getFile(path, SVNRevision.HEAD.getNumber(), new SVNProperties(), out)
+                }
+            }
             out.writeTo(fos)
         } catch (SVNException e) {
             logger.error(e.errorMessage.toString())

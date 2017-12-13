@@ -41,7 +41,6 @@ class PaludisPackageDistributionTask extends DefaultTask {
     }
 
     void initSVN() {
-//        this.svnUtils = new SvnUtils(this.ext.user, this.ext.password.toCharArray())
         this.svnUtils = new SvnUtils(ext)
         currBranch = new SvnBranchAbstract(svnUtils, null, null, null)
         prevBranch = new SvnBranchAbstract(svnUtils, null, null, null)
@@ -93,6 +92,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
                     for (wildcard in entry.value)
                         if (FilenameUtils.wildcardMatch(file, wildcard as String)) {
                             addToPaludisPackages(entry.key)
+                            println("${entry.key}")
                             isMatched = true
                             break
                         }
@@ -101,10 +101,10 @@ class PaludisPackageDistributionTask extends DefaultTask {
                     }
                 }
             }
-        } else {
-            for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
-                addToPaludisPackages(entry.key)
-            }
+        }
+
+        if (paludisPackages.isEmpty()) {
+            throw new Exception('There is no data change found in project, please check, mb need do commit')
         }
 
         generatePackageVersion()

@@ -19,7 +19,7 @@ class PaludisPackageTarTask extends Tar {
         onlyIf {
             def map = project.tasks.findByName("paludisPackageDistribution").property("paludisPackages") as HashMap
             archiveName = "$ext.packageName-$baseName-${project.tasks.findByName("paludisPackageDistribution").property("packageVersion").version}.$extension"
-            return map.get(name) || forceDistribution
+            return map.get(baseName) || forceDistribution
         }
     }
 }
