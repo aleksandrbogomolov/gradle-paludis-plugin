@@ -36,8 +36,9 @@ class AuthenticationProvider implements ISVNAuthenticationProvider {
         String scmPass
 
         ext.user = previousAuth.getUserName()
-        if (ext.project.hasProperty("domainPassword")) {
-            ext.password = ext.project.property("domainPassword")
+        def password = ext.project.findProperty("domainPassword")
+        if (password) {
+            ext.password = password
         } else {
             (scmPass, isCanceled) = UiUtils.promptPassword(
                     "Please enter password to access $realm",
@@ -49,7 +50,7 @@ class AuthenticationProvider implements ISVNAuthenticationProvider {
                     "${svnErrorMessage.toString()} ")
         }
 
-        SVNAuthentication svnAuthenticationNew = new SVNPasswordAuthentication(ext.user, ext.password, true)
+        SVNAuthentication svnAuthenticationNew = SVNPasswordAuthentication.newInstance(ext.user, ext.password.toCharArray(), true, ext.currUrl, false)
         return svnAuthenticationNew
     }
 
