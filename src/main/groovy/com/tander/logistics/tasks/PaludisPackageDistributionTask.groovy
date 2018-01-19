@@ -102,7 +102,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
             }
         }
 
-        if (paludisPackages.isEmpty()) {
+        if (paludisPackages.isEmpty() && doCheckSVN) {
             throw new Exception('There is no data change found in project, please check, mb need do commit')
         }
 
