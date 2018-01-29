@@ -3,8 +3,6 @@ package com.tander.logistics.svn
 import com.tander.logistics.PaludisPackageExtension
 import com.tander.logistics.ui.UiUtils
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 import org.tmatesoft.svn.core.SVNErrorMessage
 import org.tmatesoft.svn.core.SVNURL
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider
@@ -16,12 +14,9 @@ import org.tmatesoft.svn.core.auth.SVNPasswordAuthentication
  */
 class AuthenticationProvider implements ISVNAuthenticationProvider {
 
-    Logger logger
-
     PaludisPackageExtension ext
 
     AuthenticationProvider(PaludisPackageExtension ext) {
-        logger = Logging.getLogger(this.class)
         this.ext = ext
     }
 
@@ -50,8 +45,7 @@ class AuthenticationProvider implements ISVNAuthenticationProvider {
                     "${svnErrorMessage.toString()} ")
         }
 
-        SVNAuthentication svnAuthenticationNew = SVNPasswordAuthentication.newInstance(ext.user, ext.password.toCharArray(), true, ext.currUrl, false)
-        return svnAuthenticationNew
+        return SVNPasswordAuthentication.newInstance(ext.user, ext.password.toCharArray(), true, ext.currUrl, false)
     }
 
     @Override

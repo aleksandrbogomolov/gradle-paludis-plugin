@@ -33,4 +33,20 @@ class PaludisPackageExtension {
         info = new VersionInfo()
         this.project = project
     }
+
+    void init(Project project) {
+        this.project = project
+
+        if (project.hasProperty("domainUser")) {
+            user = project.property("domainUser")
+        }
+
+        if (project.hasProperty("domainPassword")) {
+            password = project.property("domainPassword")
+        }
+
+        if (!password) {
+            password = ''
+        }
+    }
 }
