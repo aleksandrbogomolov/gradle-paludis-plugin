@@ -21,6 +21,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
 
     String svnSetPath = 'https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/'
     def parentEbuild = "$project.buildDir.path/parentEbuild.ebuild"
+    def destinationDir = new File(project.buildDir, "ebuilds")
 
     PaludisPackageExtension ext
     SvnUtils svnUtils
@@ -107,8 +108,8 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
 
         generatePackageVersion()
-        generateEbuild()
         generateSetEbuild()
+        generateEbuild()
     }
 
     void addToPaludisPackages(String key) {
@@ -149,10 +150,6 @@ class PaludisPackageDistributionTask extends DefaultTask {
     }
 
     def generateEbuild() {
-        def destinationDir = new File(project.buildDir, "ebuilds")
-        if (!destinationDir.exists()) {
-            destinationDir.mkdirs()
-        }
         wildcards.each { key, value ->
             if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
                 paludisPackages.put(key, true)
@@ -162,6 +159,9 @@ class PaludisPackageDistributionTask extends DefaultTask {
     }
 
     def generateSetEbuild() {
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs()
+        }
         svnUtils.doImportSetByPath("$svnSetPath$ext.setName", "$ext.setName-${packageVersion.version}.ebuild", parentEbuild, packageVersion)
         if (new File(parentEbuild).text == "") {
             new File(parentEbuild).text = new File("template/set").text
