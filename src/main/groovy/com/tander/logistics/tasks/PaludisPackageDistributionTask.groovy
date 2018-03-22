@@ -108,8 +108,10 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
 
         generatePackageVersion()
-        generateSetEbuild()
-        generateEbuild()
+        generateTomcatSetEbuild()
+        generateWeblogicSetEbuild()
+        generateTomcatEbuild()
+        generateWeblogicEbuild()
     }
 
     void addToPaludisPackages(String key) {
@@ -149,33 +151,56 @@ class PaludisPackageDistributionTask extends DefaultTask {
         return changedFiles
     }
 
-    def generateEbuild() {
+    def generateTomcatEbuild() {
         wildcards.each { key, value ->
             if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
                 paludisPackages.put(key, true)
-                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
+                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("${ext.tomcatTemplatePath}/$key").text, "UTF-8")
             }
         }
     }
 
-    def generateSetEbuild() {
+    def generateWeblogicEbuild() {
+        wildcards.each { key, value ->
+            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
+                paludisPackages.put(key, true)
+                new File(destinationDir, "$ext.packageNameWl-$key-${packageVersion.version}.ebuild").write(new File("${ext.weblogicTemplatePath}/$key").text, "UTF-8")
+            }
+        }
+    }
+
+    def generateTomcatSetEbuild() {
         if (!destinationDir.exists()) {
             destinationDir.mkdirs()
         }
         svnUtils.doImportSetByPath("$svnSetPath$ext.setName", "$ext.setName-${packageVersion.version}.ebuild", parentEbuild, packageVersion)
         if (new File(parentEbuild).text == "") {
-            new File(parentEbuild).text = new File("template/set").text
+            new File(parentEbuild).text = new File("${ext.tomcatTemplatePath}/set").text
             wildcards.keySet().each { k ->
                 addToPaludisPackages(k)
             }
         }
-        doNewSetEbuild()
+        doNewSetEbuild(ext.setName)
     }
 
-    void doNewSetEbuild() {
+    def generateWeblogicSetEbuild() {
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs()
+        }
+        svnUtils.doImportSetByPath("$svnSetPath$ext.setNameWl", "$ext.setNameWl-${packageVersion.version}.ebuild", parentEbuild, packageVersion)
+        if (new File(parentEbuild).text == "") {
+            new File(parentEbuild).text = new File("${ext.weblogicTemplatePath}/set").text
+            wildcards.keySet().each { k ->
+                addToPaludisPackages(k)
+            }
+        }
+        doNewSetEbuild(ext.setNameWl)
+    }
+
+    void doNewSetEbuild(String setName) {
         def packageList = new ArrayList<String>()
         wildcards.each { k, v ->
-            packageList.add("$ext.setName-$k-$packageVersion.version")
+            packageList.add("$setName-$k-$packageVersion.version")
         }
         paludisPackages.each { k, v ->
             packageList.each { tbz ->
@@ -188,7 +213,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
         new File(parentEbuild).eachLine { line ->
             text.append(checkLine(line))
         }
-        new File("$project.buildDir.path/ebuilds/${ext.setName}-${packageVersion.version}.ebuild").write(text.toString(), 'UTF-8')
+        new File("$project.buildDir.path/ebuilds/$setName-${packageVersion.version}.ebuild").write(text.toString(), 'UTF-8')
     }
 
     String checkLine(String line) {

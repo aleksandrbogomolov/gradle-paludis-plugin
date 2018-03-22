@@ -19,10 +19,13 @@ class PaludisPackageExtension {
     String currRevision
     String prevRevision
     String packagePath
+    String tomcatTemplatePath
+    String weblogicTemplatePath
 
     String packageName = ''
-    String packageGroup = ''
     String setName = ''
+    String packageNameWl = ''
+    String setNameWl = ''
     private VersionInfo info
 
     VersionInfo getInfo() {
