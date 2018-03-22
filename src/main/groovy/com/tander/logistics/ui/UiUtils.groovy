@@ -29,8 +29,8 @@ class UiUtils {
                         input = passwordField()
                         button(defaultButton: true, text: 'OK', actionPerformed: {
                             isCanceled = false
-                            password = input.password.toString(); // Set pass variable to value of input field
-                            dispose(); // Close dialog
+                            password = input.password.toString() // Set pass variable to value of input field
+                            dispose() // Close dialog
                         })
                     }
                 }
@@ -67,9 +67,9 @@ class UiUtils {
                         inputPassword = passwordField()
                         button(defaultButton: true, text: 'OK', actionPerformed: {
                             isCanceled = false
-                            login = inputLogin.text.toString();
-                            password = inputPassword.password.toString(); // Set pass variable to value of input field
-                            dispose(); // Close dialog
+                            login = inputLogin.text.toString()
+                            password = inputPassword.password.toString() // Set pass variable to value of input field
+                            dispose() // Close dialog
                         })
 //                        button(defaultButton: false, text: 'Cancel', actionPerformed: {
 //                            dispose(); // Close dialog

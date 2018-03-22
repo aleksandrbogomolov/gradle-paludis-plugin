@@ -1,24 +1,16 @@
 package com.tander.logistics.svn
 
-import org.tmatesoft.svn.core.ISVNDirEntryHandler
-import org.tmatesoft.svn.core.ISVNLogEntryHandler
-import org.tmatesoft.svn.core.SVNDepth
-import org.tmatesoft.svn.core.SVNURL
+import com.tander.logistics.PaludisPackageExtension
+import com.tander.logistics.core.PackageVersion
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.tmatesoft.svn.core.*
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory
 import org.tmatesoft.svn.core.io.SVNRepository
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory
-import org.tmatesoft.svn.core.wc.ISVNDiffStatusHandler
-import org.tmatesoft.svn.core.wc.ISVNEventHandler
-import org.tmatesoft.svn.core.wc.SVNClientManager
-import org.tmatesoft.svn.core.wc.SVNDiffClient
-import org.tmatesoft.svn.core.wc.SVNInfo
-import org.tmatesoft.svn.core.wc.SVNLogClient
-import org.tmatesoft.svn.core.wc.SVNRevision
-import org.tmatesoft.svn.core.wc.SVNUpdateClient
-import org.tmatesoft.svn.core.wc.SVNWCClient
-import org.tmatesoft.svn.core.wc.SVNWCUtil
+import org.tmatesoft.svn.core.wc.*
 
 /**
  * Created by durov_an on 01.04.2016.
@@ -29,14 +21,16 @@ class SvnUtils {
     ISVNAuthenticationManager authManager
     SVNClientManager clientManager
     SVNRevision firstRevision
+    Logger logger
 
-    SvnUtils(String username, char[] password) {
+    SvnUtils(PaludisPackageExtension ext) {
         DAVRepositoryFactory.setup()
-        ISVNAuthenticationProvider provider = new AuthenticationProvider()
-        authManager = SVNWCUtil.createDefaultAuthenticationManager(username, password)
+        ISVNAuthenticationProvider provider = new AuthenticationProvider(ext)
+        authManager = SVNWCUtil.createDefaultAuthenticationManager(ext.user, ext.password.toCharArray())
         authManager.setAuthenticationProvider(provider)
         clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true), authManager)
         firstRevision = SVNRevision.create(1)
+        logger = Logging.getLogger(this.class)
     }
 
     def doExport(String svnURL, String dirPath, SVNRevision revision, ISVNEventHandler dispatcher) {
@@ -119,40 +113,75 @@ class SvnUtils {
     void testConnection(String svnUrl) {
         SVNURL url = new SVNURL(svnUrl, true)
         SVNRepository repository = SVNRepositoryFactory.create(url, null);
-        repository.setAuthenticationManager(authManager);
+        repository.setAuthenticationManager(authManager)
         repository.testConnection()
     }
 
     String getWorkingDirectoryUrl(String dirPath) {
-
         SVNWCClient svnwcClient = clientManager.getWCClient()
         SVNInfo svnInfo = svnwcClient.doInfo(new File(dirPath), SVNRevision.WORKING)
         return svnInfo.getURL().toString()
     }
 
-    static SVNRevision getSvnRevision(String revision) {
-        switch (revision) {
-            case 'HEAD':
-                return SVNRevision.HEAD
-                break
-            case 'WORKING':
-                return SVNRevision.WORKING
-                break
-            case 'PREVIOUS':
-                return SVNRevision.PREVIOUS
-                break
-            case 'BASE':
-                return SVNRevision.BASE
-                break
-            case 'COMMITTED':
-                return SVNRevision.COMMITTED
-                break
-            case 'UNDEFINED':
-                return SVNRevision.UNDEFINED
-                break
-            default:
-                return SVNRevision.create(revision as long)
-                break
+    void doImportSetByPath(String repoUrl, String path, String filePath, PackageVersion packageVersion) throws SVNException {
+        DAVRepositoryFactory.setup()
+        SVNRepository repository
+        def out = null
+        def fos = new FileOutputStream(filePath)
+        try {
+            repository = SVNRepositoryFactory.create(SVNURL.parseURIEncoded(repoUrl))
+            repository.setAuthenticationManager(authManager)
+            SVNNodeKind node = repository.checkPath(path, SVNRevision.HEAD.getNumber())
+            if (node == SVNNodeKind.NONE && packageVersion.isRelease) {
+                path = findPreviousSetVersion(repository, path)
+            } else if (node == SVNNodeKind.NONE && !packageVersion.isRelease) {
+                def chainPath = (path - ".ebuild")
+                path = "${chainPath.substring(0, chainPath.lastIndexOf("."))}.ebuild"
+            }
+            out = new ByteArrayOutputStream()
+            try {
+                repository.getFile(path, SVNRevision.HEAD.getNumber(), new SVNProperties(), out)
+            } catch (SVNException e) {
+                if (!packageVersion.isRelease) {
+                    path = findPreviousSetVersion(repository, path)
+                    repository.getFile(path, SVNRevision.HEAD.getNumber(), new SVNProperties(), out)
+                }
+            }
+            out.writeTo(fos)
+        } catch (SVNException e) {
+            logger.error(e.errorMessage.toString())
+        } finally {
+            if (out != null) {
+                out.close()
+            }
+            if (fos != null) {
+                fos.close()
+            }
         }
+    }
+
+    String findPreviousSetVersion(SVNRepository repository, String path) {
+        String result = path
+        def regex = ~/\d*\.\d*\.\d*/
+        def dir = new ArrayList<SVNDirEntry>()
+        repository.getDir(".", SVNRevision.HEAD.getNumber(), new SVNProperties(), dir)
+        def ebuildNames = new ArrayList()
+        ebuildNames.add(path)
+        dir.each { f ->
+            def name = f.getName() - ".ebuild"
+            def chainName = name.split("-")
+            if (regex.matcher(chainName.last()).matches()) {
+                ebuildNames.add("${name}.ebuild")
+            }
+        }
+        ebuildNames.sort()
+        for (e in ebuildNames) {
+            if (e == path) {
+                return result
+            } else {
+                result = e
+            }
+        }
+        return result
     }
 }

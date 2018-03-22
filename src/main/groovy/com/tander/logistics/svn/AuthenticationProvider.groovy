@@ -1,9 +1,8 @@
 package com.tander.logistics.svn
 
+import com.tander.logistics.PaludisPackageExtension
 import com.tander.logistics.ui.UiUtils
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 import org.tmatesoft.svn.core.SVNErrorMessage
 import org.tmatesoft.svn.core.SVNURL
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationProvider
@@ -15,10 +14,10 @@ import org.tmatesoft.svn.core.auth.SVNPasswordAuthentication
  */
 class AuthenticationProvider implements ISVNAuthenticationProvider {
 
-    protected Logger logger
+    PaludisPackageExtension ext
 
-    AuthenticationProvider() {
-        logger = Logging.getLogger(this.class)
+    AuthenticationProvider(PaludisPackageExtension ext) {
+        this.ext = ext
     }
 
     @Override
@@ -29,22 +28,24 @@ class AuthenticationProvider implements ISVNAuthenticationProvider {
                                                   SVNAuthentication previousAuth,
                                                   boolean authMayBeStored) {
         Boolean isCanceled
-        String scmUser
         String scmPass
 
-        scmUser = previousAuth.getUserName()
-        logger.lifecycle("Authentication error: " + svnErrorMessage)
-        (scmPass, isCanceled) = UiUtils.promptPassword(
-                "Please enter password to access $realm",
-                "Please enter password to access $realm \n for user $scmUser:")
-
+        ext.user = previousAuth.getUserName()
+        def password = ext.project.findProperty("domainPassword")
+        if (password) {
+            ext.password = password
+        } else {
+            (scmPass, isCanceled) = UiUtils.promptPassword(
+                    "Please enter password to access $realm",
+                    "Please enter password to access $realm \n for user ${ext.user}:")
+            ext.password = scmPass
+        }
         if (isCanceled && svnErrorMessage) {
             throw new InvalidUserDataException(" ${svnErrorMessage.getErrorCode().toString()} \n" +
                     "${svnErrorMessage.toString()} ")
         }
 
-        SVNAuthentication svnAuthenticationNew = new SVNPasswordAuthentication(scmUser, scmPass, true)
-        return svnAuthenticationNew
+        return SVNPasswordAuthentication.newInstance(ext.user, ext.password.toCharArray(), true, ext.currUrl, false)
     }
 
     @Override
