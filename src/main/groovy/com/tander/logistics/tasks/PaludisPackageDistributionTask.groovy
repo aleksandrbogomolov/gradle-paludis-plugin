@@ -108,10 +108,10 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
 
         generatePackageVersion()
-        generateTomcatSetEbuild()
-        generateWeblogicSetEbuild()
+//        generateTomcatSetEbuild()
+//        generateWeblogicSetEbuild()
         generateTomcatEbuild()
-        generateWeblogicEbuild()
+//        generateWeblogicEbuild()
     }
 
     void addToPaludisPackages(String key) {
@@ -152,10 +152,13 @@ class PaludisPackageDistributionTask extends DefaultTask {
     }
 
     def generateTomcatEbuild() {
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs()
+        }
         wildcards.each { key, value ->
             if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
                 paludisPackages.put(key, true)
-                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("${ext.tomcatTemplatePath}/$key").text, "UTF-8")
+                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
             }
         }
     }
