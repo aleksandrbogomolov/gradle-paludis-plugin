@@ -19,7 +19,7 @@ import org.tmatesoft.svn.core.wc.SVNRevision
  */
 class PaludisPackageDistributionTask extends DefaultTask {
 
-    String svnSetPath = 'https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/'
+    String svnSetPath = 'https://sources.corp.tander.ru/svn/assembly/pkg/repository/set/'
     def parentEbuild = "$project.buildDir.path/parentEbuild.ebuild"
     def destinationDir = new File(project.buildDir, "ebuilds")
 
