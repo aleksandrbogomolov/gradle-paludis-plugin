@@ -108,6 +108,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
 
         generatePackageVersion()
+        checkTasks()
         generateTomcatSetEbuild()
         generateWeblogicSetEbuild()
         generateTomcatEbuild()
@@ -126,6 +127,14 @@ class PaludisPackageDistributionTask extends DefaultTask {
         } else {
             packageVersion.isRelease = false
             packageVersion.version = "${strings.last()}.${strings[1].substring(2)}"
+        }
+    }
+
+    void checkTasks() {
+        wildcards.each { key, value ->
+            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
+                paludisPackages.put(key, true)
+            }
         }
     }
 
@@ -152,20 +161,14 @@ class PaludisPackageDistributionTask extends DefaultTask {
     }
 
     def generateTomcatEbuild() {
-        wildcards.each { key, value ->
-            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
-                paludisPackages.put(key, true)
-                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("${ext.tomcatTemplatePath}/$key").text, "UTF-8")
-            }
+        paludisPackages.each { key, value ->
+            new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("${ext.tomcatTemplatePath}/$key").text, "UTF-8")
         }
     }
 
     def generateWeblogicEbuild() {
-        wildcards.each { key, value ->
-            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
-                paludisPackages.put(key, true)
-                new File(destinationDir, "$ext.packageNameWl-$key-${packageVersion.version}.ebuild").write(new File("${ext.weblogicTemplatePath}/$key").text, "UTF-8")
-            }
+        paludisPackages.each { key, value ->
+            new File(destinationDir, "$ext.packageNameWl-$key-${packageVersion.version}.ebuild").write(new File("${ext.weblogicTemplatePath}/$key").text, "UTF-8")
         }
     }
 
