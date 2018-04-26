@@ -19,7 +19,7 @@ import org.tmatesoft.svn.core.wc.SVNRevision
  */
 class PaludisPackageDistributionTask extends DefaultTask {
 
-    String svnSetPath = 'https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/'
+    String svnSetPath = 'https://sources.corp.tander.ru/svn/assembly/pkg/repository/set/'
     def parentEbuild = "$project.buildDir.path/parentEbuild.ebuild"
     def destinationDir = new File(project.buildDir, "ebuilds")
 
@@ -108,8 +108,12 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
 
         generatePackageVersion()
+        checkTasks()
         generateSetEbuild()
         generateEbuild()
+        if (packageVersion.isRelease) {
+            generateMasterSet()
+        }
     }
 
     void addToPaludisPackages(String key) {
@@ -124,6 +128,14 @@ class PaludisPackageDistributionTask extends DefaultTask {
         } else {
             packageVersion.isRelease = false
             packageVersion.version = "${strings.last()}.${strings[1].substring(2)}"
+        }
+    }
+
+    void checkTasks() {
+        wildcards.each { key, value ->
+            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
+                paludisPackages.put(key, true)
+            }
         }
     }
 
@@ -150,11 +162,8 @@ class PaludisPackageDistributionTask extends DefaultTask {
     }
 
     def generateEbuild() {
-        wildcards.each { key, value ->
-            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
-                paludisPackages.put(key, true)
-                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
-            }
+        paludisPackages.each { key, value ->
+            new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
         }
     }
 
@@ -199,5 +208,14 @@ class PaludisPackageDistributionTask extends DefaultTask {
             }
         }
         return result
+    }
+
+    void generateMasterSet() {
+        String projectName = "${ext.setName}-${packageVersion.version}"
+        new File("template/masterSet").eachLine { line ->
+            if (line.contains(ext.setName)) {
+                println(line)
+            }
+        }
     }
 }
