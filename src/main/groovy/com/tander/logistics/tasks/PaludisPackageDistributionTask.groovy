@@ -19,7 +19,7 @@ import org.tmatesoft.svn.core.wc.SVNRevision
  */
 class PaludisPackageDistributionTask extends DefaultTask {
 
-    String svnSetPath = 'https://sources.corp.tander.ru/svn/real_out/pkg/repository/set/'
+    String svnSetPath = 'https://sources.corp.tander.ru/svn/assembly/pkg/repository/set/'
     def parentEbuild = "$project.buildDir.path/parentEbuild.ebuild"
     def destinationDir = new File(project.buildDir, "ebuilds")
 
@@ -86,7 +86,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
     void run() {
         initSVN()
         if (doCheckSVN) {
-            def changedFiles = getChangedFiles(new ArrayList<String>())
+            def changedFiles = getChangedFiles()
             for (file in changedFiles) {
                 boolean isMatched = false
                 for (Map.Entry<String, List<String>> entry : wildcards.entrySet()) {
@@ -108,7 +108,10 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
 
         generatePackageVersion()
-        generateSetEbuild()
+        checkTasks()
+        if (ext.setName) {
+            generateSetEbuild()
+        }
         generateEbuild()
     }
 
@@ -127,7 +130,17 @@ class PaludisPackageDistributionTask extends DefaultTask {
         }
     }
 
-    List<String> getChangedFiles(List<String> changedFiles) {
+    void checkTasks() {
+        wildcards.each { key, value ->
+            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
+                paludisPackages.put(key, true)
+            }
+        }
+    }
+
+    List<String> getChangedFiles() {
+        def changedFiles = new ArrayList()
+
         ISVNDiffStatusHandler diffStatusHandler = new ISVNDiffStatusHandler() {
             ScmFile scmFile
 
@@ -150,18 +163,14 @@ class PaludisPackageDistributionTask extends DefaultTask {
     }
 
     def generateEbuild() {
-        wildcards.each { key, value ->
-            if (paludisPackages.get(key) || project.tasks.findByName(key).property("forceDistribution") as boolean) {
-                paludisPackages.put(key, true)
-                new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
-            }
+        checkDestinationDir()
+        paludisPackages.each { key, value ->
+            new File(destinationDir, "$ext.packageName-$key-${packageVersion.version}.ebuild").write(new File("template/$key").text, "UTF-8")
         }
     }
 
     def generateSetEbuild() {
-        if (!destinationDir.exists()) {
-            destinationDir.mkdirs()
-        }
+        checkDestinationDir()
         svnUtils.doImportSetByPath("$svnSetPath$ext.setName", "$ext.setName-${packageVersion.version}.ebuild", parentEbuild, packageVersion)
         if (new File(parentEbuild).text == "") {
             new File(parentEbuild).text = new File("template/set").text
@@ -199,5 +208,11 @@ class PaludisPackageDistributionTask extends DefaultTask {
             }
         }
         return result
+    }
+
+    private void checkDestinationDir() {
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs()
+        }
     }
 }
