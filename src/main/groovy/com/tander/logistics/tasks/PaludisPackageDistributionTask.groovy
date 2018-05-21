@@ -21,6 +21,7 @@ class PaludisPackageDistributionTask extends DefaultTask {
 
     String svnSetPath = 'https://sources.corp.tander.ru/svn/assembly/pkg/repository/set/'
     def parentEbuild = "$project.buildDir.path/parentEbuild.ebuild"
+    def parentSetEbuild = "$project.buildDir.path/parentSetEbuild.ebuild"
     def destinationDir = new File(project.buildDir, "ebuilds")
 
     PaludisPackageExtension ext
@@ -113,6 +114,9 @@ class PaludisPackageDistributionTask extends DefaultTask {
             generateSetEbuild()
         }
         generateEbuild()
+        if (ext.commonSetName && packageVersion.isRelease) {
+            generateCommonSet()
+        }
     }
 
     void addToPaludisPackages(String key) {
@@ -198,6 +202,28 @@ class PaludisPackageDistributionTask extends DefaultTask {
             text.append(checkLine(line))
         }
         new File("$project.buildDir.path/ebuilds/${ext.setName}-${packageVersion.version}.ebuild").write(text.toString(), 'UTF-8')
+    }
+
+    void generateCommonSet() {
+        checkDestinationDir()
+        svnUtils.doImportSetByPath("$svnSetPath$ext.commonSetName", "$ext.commonSetName-${packageVersion.version}.ebuild", parentSetEbuild, packageVersion)
+        if (new File(parentSetEbuild).text == "") {
+            new File(parentSetEbuild).text = new File("template/commonSet").text
+        }
+
+        String projectName = ext.setName ? "${ext.setName}" : "${ext.packageName}-${wildcards.keySet().toArray()[0]}"
+
+        def regex = ~/${projectName}-\d+\.\d+\.\d+/
+
+        StringBuilder text = new StringBuilder("")
+        new File(parentSetEbuild).eachLine { line ->
+            if (regex.matcher(line).matches()) {
+                text.append("${line.substring(0, line.indexOf('/') + 1)}$projectName-${packageVersion.version}\n")
+            } else {
+                text.append(line).append("\n")
+            }
+        }
+        new File("$project.buildDir.path/ebuilds/${ext.commonSetName}-${packageVersion.version}.ebuild").write(text.toString(), 'UTF-8')
     }
 
     String checkLine(String line) {
