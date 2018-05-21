@@ -21,7 +21,6 @@ class PaludisPackageExtension {
     String packagePath
 
     String packageName = ''
-    String packageGroup = ''
     String setName = ''
     private VersionInfo info
 
