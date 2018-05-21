@@ -22,6 +22,7 @@ class PaludisPackageExtension {
 
     String packageName = ''
     String setName = ''
+    String commonSetName = ''
     private VersionInfo info
 
     VersionInfo getInfo() {
